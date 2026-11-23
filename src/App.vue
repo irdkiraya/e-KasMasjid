@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-transparent flex flex-col selection:bg-emerald-600 selection:text-white">
+  <div class="min-h-screen bg-gradient-to-br from-emerald-100 via-emerald-50 to-teal-100 flex flex-col selection:bg-emerald-600 selection:text-white">
     <!-- NAVBAR ATAS -->
     <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-40 backdrop-blur-md bg-emerald-800/95">
       <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -82,7 +82,7 @@
     </main>
 
     <!-- FOOTER SEDERHANA -->
-    <footer class="bg-white/80 backdrop-blur-md border-t border-gray-200/60 py-4 text-center text-xs text-gray-500">
+    <footer class="bg-white/80 backdrop-blur-md border-t border-emerald-200/60 py-4 text-center text-xs text-gray-600">
       <p>Sistem Transparansi Keuangan & Kas DKM • Masjid Al Muhajirin © 2026</p>
     </footer>
   </div>
