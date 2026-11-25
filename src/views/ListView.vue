@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS (TANPA TULISAN TOTAL KESELURUHAN) -->
+    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS (LOGO DIPERBESAR) -->
     <div>
       <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
         <h2 class="text-base sm:text-lg font-bold text-gray-800">Saldo Kas Masjid Terkini</h2>
@@ -70,7 +70,7 @@
         <div
           v-for="w in wallets"
           :key="w.id"
-          class="bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-sm border-l-4 flex items-center justify-between"
+          class="bg-white/95 backdrop-blur-sm px-4 py-4 rounded-xl shadow-sm border-l-4 flex items-center justify-between transition hover:shadow-md"
           :class="{
             'border-emerald-600': w.type === 'operasional',
             'border-blue-600': w.type === 'zakat',
@@ -79,16 +79,21 @@
         >
           <div>
             <p class="text-xs text-gray-500 font-semibold">{{ w.name }}</p>
-            <p class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-0.5">
+            <p class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1">
               Rp {{ Number(w.balance).toLocaleString('id-ID') }}
             </p>
           </div>
-          <span
-            class="text-lg opacity-80"
-            :title="w.name"
+          <!-- Logo/Ikon Diperbesar dalam Lingkaran Elegan -->
+          <div
+            class="w-11 h-11 rounded-full flex items-center justify-center text-2xl shadow-inner shrink-0"
+            :class="{
+              'bg-emerald-50 text-emerald-700 border border-emerald-100': w.type === 'operasional',
+              'bg-blue-50 text-blue-700 border border-blue-100': w.type === 'zakat',
+              'bg-amber-50 text-amber-700 border border-amber-100': w.type === 'wakaf'
+            }"
           >
             {{ w.type === 'operasional' ? '🕌' : w.type === 'zakat' ? '🤝' : '🏛️' }}
-          </span>
+          </div>
         </div>
       </div>
     </div>
@@ -722,10 +727,6 @@ const activeSpjId = ref(null)
 const actualAmount = ref(0)
 const spjNotes = ref('')
 const spjFiles = ref([])
-
-const totalAllWallets = computed(() => {
-  return wallets.value.reduce((sum, w) => sum + Number(w.balance || 0), 0)
-})
 
 const approvedTransactions = computed(() => {
   return transactions.value.filter(t => t.status === 'approved')
