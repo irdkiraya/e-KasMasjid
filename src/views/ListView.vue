@@ -60,7 +60,7 @@
       </div>
     </div>
 
-    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS (LOGO DIPERBESAR) -->
+    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS -->
     <div>
       <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
         <h2 class="text-base sm:text-lg font-bold text-gray-800">Saldo Kas Masjid Terkini</h2>
@@ -98,7 +98,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- TAMPILAN KHUSUS JAMAAH: 1 LAYAR DINAMIS (KIRI RIWAYAT, KANAN GRAFIK) -->
+    <!-- TAMPILAN KHUSUS JAMAAH -->
     <!-- ===================================================================== -->
     <div v-if="!isPengurus" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
       
@@ -411,7 +411,7 @@
         </div>
       </div>
 
-      <!-- 4. PENYELESAIAN SPJ & DOKUMENTASI BON BELANJA (BATAS MAKSIMAL 3 x 24 JAM) -->
+      <!-- 4. PENYELESAIAN SPJ & DOKUMENTASI BON BELANJA -->
       <div v-if="openSpjList.length > 0" class="bg-purple-50 border border-purple-200 rounded-xl p-5">
         <div class="mb-4">
           <h3 class="text-lg font-bold text-purple-900">
@@ -494,7 +494,7 @@
               </div>
             </div>
 
-            <!-- FORM UPLOAD BON SPJ (KHUSUS PELAKSANA HARIAN) -->
+            <!-- FORM UPLOAD BON SPJ -->
             <div v-if="userRole === 'pelaksana_harian' && activeSpjId === spj.id" class="mt-4 pt-4 border-t border-gray-200 space-y-3">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
@@ -509,7 +509,7 @@
 
                 <div>
                   <label class="block text-xs font-bold text-gray-700 mb-1">
-                    Upload Foto Bukti Bon / Nota Belanja (Bisa pilih banyak foto) *
+                    Upload Foto Bukti Bon / Nota Belanja *
                   </label>
                   <input type="file" accept="image/*,application/pdf" multiple @change="handleSpjFilesChange" class="w-full text-xs text-gray-900 bg-white border border-gray-300 rounded-lg p-1.5" />
                 </div>
@@ -534,7 +534,7 @@
         </div>
       </div>
 
-      <!-- 5. RIWAYAT TRANSAKSI & EXPORT LAPORAN TAHUNAN (SEJAJAR & PROFESIONAL) -->
+      <!-- 5. RIWAYAT TRANSAKSI & EXPORT LAPORAN TAHUNAN -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <!-- BARIS EXPORT LAPORAN TAHUNAN & APPROVAL BASAH -->
         <div class="p-4 sm:p-5 bg-emerald-50/70 border-b border-emerald-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -715,7 +715,7 @@
       </div>
     </template>
 
-    <!-- FOOTER COPYRIGHT FATHIN FIKRY DEV -->
+    <!-- FOOTER COPYRIGHT PROFESIONAL -->
     <footer class="mt-10 pt-4 pb-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-1">
       <p class="font-semibold text-emerald-900">Sistem Keuangan & e-KasMasjid Masjid Al Muhajirin</p>
       <p>© 2026 <span class="font-bold text-gray-700">Fathin Fikry dev</span>. All rights reserved.</p>
