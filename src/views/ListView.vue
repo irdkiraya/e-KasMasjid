@@ -534,10 +534,10 @@
         </div>
       </div>
 
-      <!-- 5. RIWAYAT TRANSAKSI & EXPORT LAPORAN TAHUNAN (EXCEL & PDF TTD BASAH) -->
+      <!-- 5. RIWAYAT TRANSAKSI & EXPORT LAPORAN TAHUNAN (SEJAJAR & PROFESIONAL) -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <!-- BARIS EXPORT LAPORAN TAHUNAN & APPROVAL BASAH -->
-        <div class="p-4 sm:p-5 bg-emerald-50/70 border-b border-emerald-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="p-4 sm:p-5 bg-emerald-50/70 border-b border-emerald-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
             <h4 class="text-sm font-extrabold text-emerald-900">
               📑 Rekapitulasi Laporan Tahunan & Pengesahan Fisik (TTD Basah)
@@ -547,31 +547,33 @@
             </p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
+          <!-- KELOMPOK TOMBOL SEJAJAR SECARA HORIZONTAL -->
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
             <!-- Pilihan Tahun Laporan -->
             <select
               v-model="selectedYear"
-              class="border border-emerald-300 rounded-lg px-3 py-1.5 text-xs font-bold bg-white text-gray-900 focus:outline-none"
+              class="border border-emerald-300 rounded-lg px-3 py-2 text-xs font-bold bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs"
             >
               <option value="all">Semua Tahun</option>
               <option v-for="yr in availableYears" :key="yr" :value="yr">Tahun {{ yr }}</option>
             </select>
 
-            <!-- Tombol Export Excel -->
-            <button
-              @click="exportAnnualExcel"
-              class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>📊 Export Excel (.xlsx)</span>
-            </button>
+            <!-- Tombol Export Excel & PDF Sejajar -->
+            <div class="flex items-center gap-2">
+              <button
+                @click="exportAnnualExcel"
+                class="px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <span>📊 Export Excel (.xlsx)</span>
+              </button>
 
-            <!-- Tombol Export PDF Tanda Tangan Basah -->
-            <button
-              @click="exportAnnualPDF"
-              class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>🖨️ Cetak Laporan PDF (TTD Basah)</span>
-            </button>
+              <button
+                @click="exportAnnualPDF"
+                class="px-3.5 py-2 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <span>🖨️ Cetak Laporan PDF (TTD Basah)</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -939,9 +941,6 @@ onUnmounted(() => {
   if (clockTimer) clearInterval(clockTimer)
 })
 
-// =====================================================================
-// EXPORT LAPORAN TAHUNAN EXCEL (.XLSX)
-// =====================================================================
 const exportAnnualExcel = () => {
   const periodLabel = selectedYear.value === 'all' ? 'Semua_Tahun' : `Tahun_${selectedYear.value}`
   const reportData = approvedTransactions.value.filter(t =>
@@ -976,7 +975,6 @@ const exportAnnualExcel = () => {
     }
   })
 
-  // Tambahkan Baris Total di Bawah Tabel
   rows.push({
     'No': '',
     'Tanggal': '',
@@ -996,7 +994,6 @@ const exportAnnualExcel = () => {
     { wch: 40 }, { wch: 18 }, { wch: 18 }, { wch: 24 }, { wch: 15 }
   ]
 
-  // Sheet Kedua: Ringkasan Saldo Kantong Kas Terkini
   const walletRows = wallets.value.map(w => ({
     'Kantong Kas Masjid': w.name,
     'Saldo Terkini (Rp)': Number(w.balance || 0)
@@ -1011,9 +1008,6 @@ const exportAnnualExcel = () => {
   XLSX.writeFile(workbook, `Laporan_Keuangan_Masjid_Al_Muhajirin_${periodLabel}.xlsx`)
 }
 
-// =====================================================================
-// EXPORT LAPORAN TAHUNAN PDF RESMI (SIAP TANDA TANGAN BASAH)
-// =====================================================================
 const exportAnnualPDF = () => {
   const periodTitle = selectedYear.value === 'all' ? 'SEMUA PERIODE' : `TAHUN ${selectedYear.value}`
   const reportData = approvedTransactions.value.filter(t =>
@@ -1030,7 +1024,6 @@ const exportAnnualPDF = () => {
     day: 'numeric', month: 'long', year: 'numeric'
   })
 
-  // KOP SURAT DKM
   doc.setFontSize(14)
   doc.setFont('helvetica', 'bold')
   doc.text('DEWAN KEMAKMURAN MASJID (DKM)', 105, 16, { align: 'center' })
@@ -1090,13 +1083,11 @@ const exportAnnualPDF = () => {
 
   let finalY = doc.lastAutoTable.finalY + 8
 
-  // Cek sisa ruang halaman untuk Ringkasan Saldo & Kolom Tanda Tangan Basah
   if (finalY > 215) {
     doc.addPage()
     finalY = 20
   }
 
-  // Ringkasan Saldo Akhir Kantong Kas
   doc.setFontSize(9.5)
   doc.setFont('helvetica', 'bold')
   doc.text('Posisi Saldo Kas Masjid Terkini:', 14, finalY)
@@ -1111,7 +1102,6 @@ const exportAnnualPDF = () => {
   doc.setFontSize(9.5)
   doc.text(`Tangerang, ${tanggalCetak}`, 196, finalY, { align: 'right' })
 
-  // KOLOM PENGESAHAN & TANDA TANGAN BASAH (3 PENGURUS DKM + STEMPEL)
   finalY += 7
   doc.setFont('helvetica', 'bold')
   doc.text('Disusun Oleh,', 40, finalY, { align: 'center' })
@@ -1124,7 +1114,6 @@ const exportAnnualPDF = () => {
   doc.text('Bendahara Umum', 105, finalY, { align: 'center' })
   doc.text('Ketua DKM Al Muhajirin', 170, finalY, { align: 'center' })
 
-  // Ruang kosong 24mm untuk tanda tangan basah dan stempel
   finalY += 24
   doc.setFont('helvetica', 'bold')
   doc.text('( _______________________ )', 40, finalY, { align: 'center' })
