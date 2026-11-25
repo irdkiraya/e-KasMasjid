@@ -1,491 +1,632 @@
 <template>
-  <div class="p-6 max-w-5xl mx-auto space-y-8">
+  <div :class="isPengurus ? 'p-6 max-w-5xl mx-auto space-y-8' : 'px-4 py-3 max-w-7xl mx-auto space-y-3.5'">
     
-    <!-- HEADER MASJID AL MUHAJIRIN & LAPORAN KAS PUBLIK -->
-    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl px-6 py-5 md:px-8 md:py-6 flex items-center justify-between gap-6 shadow-sm">
-      <div>
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-emerald-950 tracking-wide leading-tight">
-          MASJID AL MUHAJIRIN
-        </h1>
-        <p class="text-base md:text-lg font-semibold text-emerald-700 mt-1.5">
-          Laporan Kas Publik Masjid
-        </p>
-      </div>
+    <!-- HEADER MASJID AL MUHAJIRIN + JAM LIVE & JADWAL SHOLAT 5 WAKTU -->
+    <div class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-800 text-white rounded-2xl px-5 py-3.5 shadow-md border border-emerald-700/60">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        
+        <!-- KIRI: LOGO & IDENTITAS MASJID -->
+        <div class="flex items-center gap-3.5">
+          <div class="bg-white/95 p-1.5 rounded-xl shadow-sm shrink-0">
+            <img
+              src="/logo-masjid.png"
+              alt="Logo Masjid Al Muhajirin"
+              class="h-14 w-14 sm:h-16 sm:w-16 object-contain"
+            />
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-wide leading-tight text-white">
+              MASJID AL MUHAJIRIN
+            </h1>
+            <p class="text-xs sm:text-sm font-medium text-emerald-200">
+              Laporan Kas Publik Masjid • {{ currentDateStr }}
+            </p>
+          </div>
+        </div>
 
-      <img
-        src="/logo-masjid.png"
-        alt="Logo Masjid Al Muhajirin"
-        class="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 object-contain shrink-0 drop-shadow-sm"
-      />
+        <!-- TENGAH / KANAN: JAM LIVE & JADWAL SHOLAT 5 WAKTU -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <!-- Jam Digital Real-Time -->
+          <div class="bg-emerald-950/80 border border-emerald-600/50 rounded-xl px-3.5 py-2 text-center shrink-0 flex flex-col justify-center">
+            <div class="text-lg sm:text-xl font-mono font-extrabold text-amber-300 tracking-wider leading-none">
+              {{ currentTimeStr }}
+            </div>
+            <div class="text-[10px] font-semibold text-emerald-300 uppercase tracking-widest mt-1">
+              WIB • Tangerang
+            </div>
+          </div>
+
+          <!-- 5 Waktu Sholat -->
+          <div class="grid grid-cols-5 gap-1.5 bg-emerald-950/60 border border-emerald-600/40 p-1.5 rounded-xl">
+            <div
+              v-for="prayer in prayerList"
+              :key="prayer.name"
+              :class="prayer.isNext ? 'bg-amber-500 text-emerald-950 shadow-sm scale-[1.02]' : 'bg-emerald-900/70 text-white'"
+              class="px-2.5 py-1.5 rounded-lg text-center transition flex flex-col justify-center min-w-[58px]"
+            >
+              <span
+                class="text-[10px] font-bold uppercase tracking-tight"
+                :class="prayer.isNext ? 'text-emerald-950' : 'text-emerald-300'"
+              >
+                {{ prayer.name }}
+              </span>
+              <span class="text-xs sm:text-sm font-extrabold font-mono mt-0.5">
+                {{ prayer.time }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
 
-    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS -->
+    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS (KOMPAK 1 BARIS) -->
     <div>
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <h2 class="text-xl font-bold text-gray-800">Saldo Kas Masjid Terkini</h2>
-        <span class="text-xs font-semibold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
-          Total Keseluruhan: Rp {{ totalAllWallets.toLocaleString('id-ID') }}
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <h2 class="text-base sm:text-lg font-bold text-gray-800">Saldo Kas Masjid Terkini</h2>
+        <span class="text-xs font-bold text-emerald-900 bg-emerald-200/80 border border-emerald-300 px-3 py-0.5 rounded-full">
+          Total Kas Keseluruhan: Rp {{ totalAllWallets.toLocaleString('id-ID') }}
         </span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div
           v-for="w in wallets"
           :key="w.id"
-          class="bg-white p-5 rounded-xl shadow-sm border-l-4"
+          class="bg-white/95 backdrop-blur-sm px-4 py-3 rounded-xl shadow-sm border-l-4 flex items-center justify-between"
           :class="{
             'border-emerald-600': w.type === 'operasional',
             'border-blue-600': w.type === 'zakat',
             'border-amber-500': w.type === 'wakaf'
           }"
         >
-          <p class="text-sm text-gray-500 font-medium">{{ w.name }}</p>
-          <p class="text-2xl font-bold text-gray-900 mt-1">
-            Rp {{ Number(w.balance).toLocaleString('id-ID') }}
-          </p>
+          <div>
+            <p class="text-xs text-gray-500 font-semibold">{{ w.name }}</p>
+            <p class="text-xl sm:text-2xl font-extrabold text-gray-900 mt-0.5">
+              Rp {{ Number(w.balance).toLocaleString('id-ID') }}
+            </p>
+          </div>
+          <span
+            class="text-lg opacity-80"
+            :title="w.name"
+          >
+            {{ w.type === 'operasional' ? '🕌' : w.type === 'zakat' ? '🤝' : '🏛️' }}
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- 2. DASHBOARD CASHFLOW DINAMIS KHUSUS JAMAAH (TAMPIL JIKA BUKAN PENGURUS) -->
-    <div v-if="!isPengurus" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Kartu Kiri: Ringkasan Arus Kas & Rasio -->
-      <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between space-y-4">
-        <div>
-          <h3 class="text-base font-bold text-gray-800">📊 Ringkasan Cashflow Kas Masjid</h3>
-          <p class="text-xs text-gray-500 mt-0.5">Perbandingan total dana masuk dan penyaluran operasional masjid</p>
-        </div>
+    <!-- ===================================================================== -->
+    <!-- TAMPILAN KHUSUS JAMAAH: 1 LAYAR DINAMIS (KIRI RIWAYAT, KANAN GRAFIK) -->
+    <!-- ===================================================================== -->
+    <div v-if="!isPengurus" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+      
+      <!-- KOLOM KIRI (7 KOLOM): RIWAYAT PENERIMAAN & PENGELUARAN KAS -->
+      <div class="lg:col-span-7 bg-white/95 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2 bg-gray-50/70">
+          <h3 class="text-sm sm:text-base font-bold text-gray-800">
+            Riwayat Penerimaan & Pengeluaran Kas
+          </h3>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-emerald-50 border border-emerald-100 p-3.5 rounded-xl">
-            <span class="text-xs font-semibold text-emerald-800">Total Pemasukan</span>
-            <p class="text-lg sm:text-xl font-extrabold text-emerald-700 mt-1">
-              + Rp {{ totalApprovedIncome.toLocaleString('id-ID') }}
-            </p>
-          </div>
-          <div class="bg-red-50 border border-red-100 p-3.5 rounded-xl">
-            <span class="text-xs font-semibold text-red-800">Total Pengeluaran</span>
-            <p class="text-lg sm:text-xl font-extrabold text-red-600 mt-1">
-              - Rp {{ totalApprovedExpense.toLocaleString('id-ID') }}
-            </p>
-          </div>
-        </div>
-
-        <!-- Progress Bar Rasio Penggunaan Dana -->
-        <div class="space-y-1.5">
-          <div class="flex justify-between text-xs font-semibold text-gray-600">
-            <span>Penyerapan Dana: {{ expenseRatio }}%</span>
-            <span>Sisa Tersimpan: {{ 100 - expenseRatio }}%</span>
-          </div>
-          <div class="w-full h-3 bg-emerald-100 rounded-full overflow-hidden flex">
-            <div
-              class="bg-amber-500 h-full transition-all duration-500"
-              :style="{ width: expenseRatio + '%' }"
-            ></div>
-          </div>
-          <div class="flex items-center gap-4 text-[11px] text-gray-500 pt-1">
-            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> Dana Tersalurkan</span>
-            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-200 inline-block"></span> Saldo Kas Aktif</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Kartu Kanan: Rincian Penyaluran per Kategori -->
-      <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 space-y-4">
-        <div>
-          <h3 class="text-base font-bold text-gray-800">🕌 Alokasi Pengeluaran per Bidang</h3>
-          <p class="text-xs text-gray-500 mt-0.5">Rincian penyaluran kas masjid yang telah disahkan DKM</p>
-        </div>
-
-        <div v-if="expenseBreakdown.length > 0" class="space-y-3">
-          <div v-for="cat in expenseBreakdown" :key="cat.name" class="space-y-1">
-            <div class="flex justify-between text-xs font-semibold">
-              <span class="text-gray-800">{{ cat.name }}</span>
-              <span class="text-gray-700">Rp {{ cat.total.toLocaleString('id-ID') }} ({{ cat.percent }}%)</span>
-            </div>
-            <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                class="bg-emerald-600 h-full rounded-full transition-all duration-500"
-                :style="{ width: cat.percent + '%' }"
-              ></div>
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-sm text-gray-400 py-6 text-center">
-          Belum ada catatan pengeluaran yang disahkan.
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. ANTREAN VERIFIKASI & PERSETUJUAN (HANYA 3 PENGURUS DKM) -->
-    <div v-if="isPengurus && visiblePendingTransactions.length > 0" class="bg-amber-50 border border-amber-200 rounded-xl p-5">
-      <h3 class="text-lg font-bold text-amber-900 mb-4">
-        📋 Antrean Verifikasi & Persetujuan ({{ visiblePendingTransactions.length }})
-      </h3>
-
-      <div class="space-y-4">
-        <div
-          v-for="item in visiblePendingTransactions"
-          :key="item.id"
-          class="bg-white p-4 rounded-lg shadow-sm border-l-4"
-          :class="item.status === 'pending_bendahara' ? 'border-blue-500' : 'border-amber-500'"
-        >
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span
-                  class="text-xs font-bold px-2 py-0.5 rounded"
-                  :class="item.status === 'pending_bendahara' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'"
-                >
-                  {{ item.status === 'pending_bendahara' ? 'Tahap 1: Verifikasi Bendahara' : 'Tahap 2: Persetujuan Ketua DKM' }}
-                </span>
-                <span v-if="item.is_budget_request" class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
-                  Pengajuan Budget
-                </span>
-                <span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
-                  {{ item.categories?.name }}
-                </span>
-              </div>
-
-              <h4 class="font-bold text-gray-900 mt-1.5">{{ item.description }}</h4>
-              <p class="text-sm text-gray-600">
-                Nominal:
-                <strong :class="item.type === 'income' ? 'text-emerald-700' : 'text-red-600'">
-                  Rp {{ Number(item.amount).toLocaleString('id-ID') }}
-                </strong>
-                • Kantong: {{ item.wallets?.name }}
-              </p>
-
-              <div v-if="item.applicant_name" class="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-gray-700">
-                <span>Pemohon: <strong>{{ item.applicant_name }}</strong></span>
-                <span v-if="item.applicant_sig" class="text-emerald-700 font-semibold">✓ Sudah TTD Pemohon</span>
-                <span v-if="item.bendahara_sig" class="text-blue-700 font-semibold">✓ Sudah TTD Bendahara ({{ item.bendahara_name }})</span>
-              </div>
-
-              <p v-if="item.witness_1 || item.witness_2" class="text-xs text-gray-700 mt-1">
-                Saksi 1: <strong>{{ item.witness_1 }}</strong> | Saksi 2: <strong>{{ item.witness_2 }}</strong>
-              </p>
-
-              <a
-                v-if="item.receipt_url"
-                :href="item.receipt_url"
-                target="_blank"
-                class="inline-block text-xs font-semibold text-blue-600 underline mt-1.5"
-              >
-                📄 Buka Dokumen Lampiran / PDF ↗
-              </a>
-            </div>
-
-            <!-- TOMBOL AKSI SESUAI ROLE PENGURUS -->
-            <div class="flex gap-2">
-              <template v-if="userRole === 'bendahara' && item.status === 'pending_bendahara'">
-                <button
-                  @click="handleReject(item.id)"
-                  :disabled="processingId === item.id"
-                  class="px-3.5 py-2 text-sm font-semibold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition"
-                >
-                  Tolak
-                </button>
-                <button
-                  @click="openApprovalBox(item.id, 'bendahara')"
-                  :disabled="processingId === item.id"
-                  class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
-                >
-                  {{ activeApprovalId === item.id ? 'Batal' : 'Verifikasi & TTD Bendahara ✍️' }}
-                </button>
-              </template>
-
-              <template v-else-if="userRole === 'ketua_dkm' && item.status === 'pending_ketua'">
-                <button
-                  @click="handleReject(item.id)"
-                  :disabled="processingId === item.id"
-                  class="px-3.5 py-2 text-sm font-semibold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition"
-                >
-                  Tolak
-                </button>
-                <button
-                  @click="openApprovalBox(item.id, 'ketua_dkm')"
-                  :disabled="processingId === item.id"
-                  class="px-4 py-2 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition"
-                >
-                  {{ activeApprovalId === item.id ? 'Batal' : 'Setujui & TTD Ketua DKM ✍️' }}
-                </button>
-              </template>
-
-              <span v-else class="text-xs italic text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
-                {{ item.status === 'pending_bendahara' ? 'Menunggu pemeriksaan Bendahara' : 'Menunggu pengesahan Ketua DKM' }}
-              </span>
-            </div>
-          </div>
-
-          <!-- KOTAK PEMBUBUHAN TANDA TANGAN -->
-          <div v-if="activeApprovalId === item.id" class="mt-4 pt-4 border-t border-gray-200 bg-gray-50 p-4 rounded-lg space-y-3">
-            <p class="text-xs font-bold uppercase tracking-wide" :class="userRole === 'bendahara' ? 'text-blue-900' : 'text-emerald-900'">
-              ✍️ Pembubuhan Tanda Tangan {{ userRole === 'bendahara' ? 'Bendahara Umum' : 'Ketua DKM' }}
-            </p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                  Nama Lengkap {{ userRole === 'bendahara' ? 'Bendahara Umum' : 'Ketua DKM' }} *
-                </label>
-                <input
-                  v-model="approverName"
-                  type="text"
-                  required
-                  placeholder="Masukkan nama lengkap"
-                  class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">Goreskan Tanda Tangan di Layar *</label>
-                <SignaturePad ref="approvalSigPad" />
-              </div>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2">
-              <button
-                @click="activeApprovalId = null"
-                class="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg"
-              >
-                Batal
-              </button>
-              <button
-                v-if="userRole === 'bendahara'"
-                @click="submitBendaharaApproval(item)"
-                :disabled="processingId === item.id"
-                class="px-5 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition disabled:opacity-50"
-              >
-                {{ processingId === item.id ? 'Menyimpan...' : 'Simpan Verifikasi & TTD ✓' }}
-              </button>
-              <button
-                v-else-if="userRole === 'ketua_dkm'"
-                @click="submitKetuaApproval(item)"
-                :disabled="processingId === item.id"
-                class="px-5 py-2 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition disabled:opacity-50"
-              >
-                {{ processingId === item.id ? 'Menyimpan...' : 'Simpan Pengesahan & TTD ✓' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. PENYELESAIAN SPJ & DOKUMENTASI BON BELANJA (HANYA 3 PENGURUS DKM) -->
-    <div v-if="isPengurus && openSpjList.length > 0" class="bg-purple-50 border border-purple-200 rounded-xl p-5">
-      <div class="mb-4">
-        <h3 class="text-lg font-bold text-purple-900">
-          🧾 Penyelesaian SPJ & Dokumentasi Bon ({{ openSpjList.length }})
-        </h3>
-        <p class="text-xs text-purple-700">
-          Budget berikut sudah dicairkan. Unggah foto bon/nota belanja untuk menyelesaikan laporan pertanggungjawaban.
-        </p>
-      </div>
-
-      <div class="space-y-4">
-        <div
-          v-for="spj in openSpjList"
-          :key="spj.id"
-          class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-600"
-        >
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
-                Dana Cair • Menunggu Bon SPJ
-              </span>
-              <h4 class="font-bold text-gray-900 mt-1">{{ spj.description }}</h4>
-              <p class="text-sm text-gray-600">
-                Budget Dicairkan: <strong class="text-purple-800">Rp {{ Number(spj.amount).toLocaleString('id-ID') }}</strong>
-                • {{ spj.categories?.name }}
-              </p>
-            </div>
-
+          <!-- Filter Interaktif -->
+          <div class="flex flex-wrap items-center gap-1.5">
             <button
-              @click="activeSpjId = (activeSpjId === spj.id ? null : spj.id); actualAmount = spj.amount"
-              class="px-4 py-2 text-sm font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-lg transition"
+              @click="filterType = 'all'"
+              :class="filterType === 'all' ? 'bg-emerald-700 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition"
             >
-              {{ activeSpjId === spj.id ? 'Tutup Form SPJ' : '+ Lengkapi Bon SPJ' }}
+              Semua
+            </button>
+            <button
+              @click="filterType = 'income'"
+              :class="filterType === 'income' ? 'bg-emerald-700 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition"
+            >
+              Pemasukan (+)
+            </button>
+            <button
+              @click="filterType = 'expense'"
+              :class="filterType === 'expense' ? 'bg-amber-600 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition"
+            >
+              Pengeluaran (-)
+            </button>
+            <button @click="fetchDashboardData" class="text-[11px] text-emerald-700 hover:underline font-bold ml-1">
+              ↻ Muat Ulang
             </button>
           </div>
+        </div>
 
-          <div v-if="activeSpjId === spj.id" class="mt-4 pt-4 border-t border-gray-100 space-y-3">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- Tabel dengan Internal Scroll agar muat 1 layar -->
+        <div class="overflow-x-auto overflow-y-auto max-h-[340px] flex-1">
+          <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 z-10 bg-gray-50 text-gray-600 text-[11px] uppercase border-b shadow-2xs">
+              <tr>
+                <th class="px-3 py-2.5">Tanggal</th>
+                <th class="px-3 py-2.5">Kategori & Keterangan</th>
+                <th class="px-3 py-2.5">Kantong Kas</th>
+                <th class="px-3 py-2.5 text-right">Nominal</th>
+                <th class="px-3 py-2.5 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-xs">
+              <tr v-for="trx in displayedTransactions" :key="trx.id" class="hover:bg-emerald-50/40 transition">
+                <td class="px-3 py-2.5 whitespace-nowrap text-gray-500">
+                  {{ new Date(trx.transaction_date).toLocaleDateString('id-ID') }}
+                </td>
+                <td class="px-3 py-2.5">
+                  <div class="font-bold text-gray-900">{{ trx.categories?.name }}</div>
+                  <div class="text-gray-500 text-[11px] line-clamp-1">{{ trx.description }}</div>
+                  <div v-if="trx.witness_1 || trx.witness_2" class="text-emerald-700 text-[10px] font-medium mt-0.5">
+                    Saksi Penghitung: {{ trx.witness_1 }} & {{ trx.witness_2 }}
+                  </div>
+                </td>
+                <td class="px-3 py-2.5 text-gray-600 whitespace-nowrap">{{ trx.wallets?.name }}</td>
+                <td
+                  class="px-3 py-2.5 font-extrabold whitespace-nowrap text-right"
+                  :class="trx.type === 'income' ? 'text-emerald-600' : 'text-red-600'"
+                >
+                  {{ trx.type === 'income' ? '+' : '-' }} Rp {{ Number(trx.actual_amount ?? trx.amount).toLocaleString('id-ID') }}
+                </td>
+                <td class="px-3 py-2.5 text-center whitespace-nowrap">
+                  <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">
+                    Disetujui DKM
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="displayedTransactions.length === 0">
+                <td colspan="5" class="p-6 text-center text-gray-400">Belum ada data transaksi pada kategori ini.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KOLOM KANAN (5 KOLOM): RINGKASAN CASHFLOW & ALOKASI PENGELUARAN -->
+      <div class="lg:col-span-5 flex flex-col gap-3.5 justify-between">
+        
+        <!-- Kartu Atas: Ringkasan Cashflow Kas Masjid -->
+        <div class="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-gray-100 space-y-3">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-gray-800">📊 Ringkasan Cashflow Kas Masjid</h3>
+            <p class="text-[11px] text-gray-500">Perbandingan total dana masuk dan penyaluran operasional masjid</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div class="bg-emerald-50 border border-emerald-200/70 p-3 rounded-xl">
+              <span class="text-[11px] font-bold text-emerald-800">Total Pemasukan</span>
+              <p class="text-base sm:text-lg font-extrabold text-emerald-700 mt-0.5">
+                + Rp {{ totalApprovedIncome.toLocaleString('id-ID') }}
+              </p>
+            </div>
+            <div class="bg-red-50 border border-red-200/70 p-3 rounded-xl">
+              <span class="text-[11px] font-bold text-red-800">Total Pengeluaran</span>
+              <p class="text-base sm:text-lg font-extrabold text-red-600 mt-0.5">
+                - Rp {{ totalApprovedExpense.toLocaleString('id-ID') }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Progress Bar Rasio Penggunaan Dana -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px] font-bold text-gray-600">
+              <span>Penyerapan Dana: {{ expenseRatio }}%</span>
+              <span>Sisa Tersimpan: {{ 100 - expenseRatio }}%</span>
+            </div>
+            <div class="w-full h-2.5 bg-emerald-100 rounded-full overflow-hidden flex">
+              <div
+                class="bg-amber-500 h-full transition-all duration-500"
+                :style="{ width: expenseRatio + '%' }"
+              ></div>
+            </div>
+            <div class="flex items-center gap-4 text-[10px] text-gray-500 pt-0.5">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span> Dana Tersalurkan</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-300 inline-block"></span> Saldo Kas Aktif</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kartu Bawah: Alokasi Pengeluaran per Bidang -->
+        <div class="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-gray-100 space-y-2.5 flex-1">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-gray-800">🕌 Alokasi Pengeluaran per Bidang</h3>
+            <p class="text-[11px] text-gray-500">Rincian penyaluran kas masjid yang telah disahkan DKM</p>
+          </div>
+
+          <div v-if="expenseBreakdown.length > 0" class="space-y-2.5 overflow-y-auto max-h-[145px] pr-1">
+            <div v-for="cat in expenseBreakdown" :key="cat.name" class="space-y-1">
+              <div class="flex justify-between text-xs font-bold">
+                <span class="text-gray-800">{{ cat.name }}</span>
+                <span class="text-gray-700">Rp {{ cat.total.toLocaleString('id-ID') }} ({{ cat.percent }}%)</span>
+              </div>
+              <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  class="bg-emerald-600 h-full rounded-full transition-all duration-500"
+                  :style="{ width: cat.percent + '%' }"
+                ></div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-xs text-gray-400 py-4 text-center">
+            Belum ada catatan pengeluaran yang disahkan.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAMPILAN KHUSUS 3 PENGURUS DKM (VERIFIKASI TTD, SPJ & RIWAYAT LENGKAP) -->
+    <!-- ===================================================================== -->
+    <template v-if="isPengurus">
+      <!-- 3. ANTREAN VERIFIKASI & PERSETUJUAN -->
+      <div v-if="visiblePendingTransactions.length > 0" class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+        <h3 class="text-lg font-bold text-amber-900 mb-4">
+          📋 Antrean Verifikasi & Persetujuan ({{ visiblePendingTransactions.length }})
+        </h3>
+
+        <div class="space-y-4">
+          <div
+            v-for="item in visiblePendingTransactions"
+            :key="item.id"
+            class="bg-white p-4 rounded-lg shadow-sm border-l-4"
+            :class="item.status === 'pending_bendahara' ? 'border-blue-500' : 'border-amber-500'"
+          >
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                  Total Realisasi Belanja Sesuai Bon (Rp) *
-                </label>
-                <input v-model="actualAmount" type="number" required min="0" class="w-full border border-gray-300 rounded-lg p-2 text-sm" />
-                <p v-if="Number(spj.amount) - Number(actualAmount) > 0" class="text-xs text-emerald-700 font-semibold mt-1">
-                  Sisa dana Rp {{ (Number(spj.amount) - Number(actualAmount)).toLocaleString('id-ID') }} akan otomatis dikembalikan ke Kas Masjid.
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class="text-xs font-bold px-2 py-0.5 rounded"
+                    :class="item.status === 'pending_bendahara' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'"
+                  >
+                    {{ item.status === 'pending_bendahara' ? 'Tahap 1: Verifikasi Bendahara' : 'Tahap 2: Persetujuan Ketua DKM' }}
+                  </span>
+                  <span v-if="item.is_budget_request" class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                    Pengajuan Budget
+                  </span>
+                  <span class="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    {{ item.categories?.name }}
+                  </span>
+                </div>
+
+                <h4 class="font-bold text-gray-900 mt-1.5">{{ item.description }}</h4>
+                <p class="text-sm text-gray-600">
+                  Nominal:
+                  <strong :class="item.type === 'income' ? 'text-emerald-700' : 'text-red-600'">
+                    Rp {{ Number(item.amount).toLocaleString('id-ID') }}
+                  </strong>
+                  • Kantong: {{ item.wallets?.name }}
+                </p>
+
+                <div v-if="item.applicant_name" class="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-gray-700">
+                  <span>Pemohon: <strong>{{ item.applicant_name }}</strong></span>
+                  <span v-if="item.applicant_sig" class="text-emerald-700 font-semibold">✓ Sudah TTD Pemohon</span>
+                  <span v-if="item.bendahara_sig" class="text-blue-700 font-semibold">✓ Sudah TTD Bendahara ({{ item.bendahara_name }})</span>
+                </div>
+
+                <p v-if="item.witness_1 || item.witness_2" class="text-xs text-gray-700 mt-1">
+                  Saksi 1: <strong>{{ item.witness_1 }}</strong> | Saksi 2: <strong>{{ item.witness_2 }}</strong>
+                </p>
+
+                <a
+                  v-if="item.receipt_url"
+                  :href="item.receipt_url"
+                  target="_blank"
+                  class="inline-block text-xs font-semibold text-blue-600 underline mt-1.5"
+                >
+                  📄 Buka Dokumen Lampiran / PDF ↗
+                </a>
+              </div>
+
+              <!-- TOMBOL AKSI SESUAI ROLE PENGURUS -->
+              <div class="flex gap-2">
+                <template v-if="userRole === 'bendahara' && item.status === 'pending_bendahara'">
+                  <button
+                    @click="handleReject(item.id)"
+                    :disabled="processingId === item.id"
+                    class="px-3.5 py-2 text-sm font-semibold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition"
+                  >
+                    Tolak
+                  </button>
+                  <button
+                    @click="openApprovalBox(item.id, 'bendahara')"
+                    :disabled="processingId === item.id"
+                    class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                  >
+                    {{ activeApprovalId === item.id ? 'Batal' : 'Verifikasi & TTD Bendahara ✍️' }}
+                  </button>
+                </template>
+
+                <template v-else-if="userRole === 'ketua_dkm' && item.status === 'pending_ketua'">
+                  <button
+                    @click="handleReject(item.id)"
+                    :disabled="processingId === item.id"
+                    class="px-3.5 py-2 text-sm font-semibold text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition"
+                  >
+                    Tolak
+                  </button>
+                  <button
+                    @click="openApprovalBox(item.id, 'ketua_dkm')"
+                    :disabled="processingId === item.id"
+                    class="px-4 py-2 text-sm font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition"
+                  >
+                    {{ activeApprovalId === item.id ? 'Batal' : 'Setujui & TTD Ketua DKM ✍️' }}
+                  </button>
+                </template>
+
+                <span v-else class="text-xs italic text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+                  {{ item.status === 'pending_bendahara' ? 'Menunggu pemeriksaan Bendahara' : 'Menunggu pengesahan Ketua DKM' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- KOTAK PEMBUBUHAN TANDA TANGAN -->
+            <div v-if="activeApprovalId === item.id" class="mt-4 pt-4 border-t border-gray-200 bg-gray-50 p-4 rounded-lg space-y-3">
+              <p class="text-xs font-bold uppercase tracking-wide" :class="userRole === 'bendahara' ? 'text-blue-900' : 'text-emerald-900'">
+                ✍️ Pembubuhan Tanda Tangan {{ userRole === 'bendahara' ? 'Bendahara Umum' : 'Ketua DKM' }}
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">
+                    Nama Lengkap {{ userRole === 'bendahara' ? 'Bendahara Umum' : 'Ketua DKM' }} *
+                  </label>
+                  <input
+                    v-model="approverName"
+                    type="text"
+                    required
+                    placeholder="Masukkan nama lengkap"
+                    class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">Goreskan Tanda Tangan di Layar *</label>
+                  <SignaturePad ref="approvalSigPad" />
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-2 pt-2">
+                <button
+                  @click="activeApprovalId = null"
+                  class="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg"
+                >
+                  Batal
+                </button>
+                <button
+                  v-if="userRole === 'bendahara'"
+                  @click="submitBendaharaApproval(item)"
+                  :disabled="processingId === item.id"
+                  class="px-5 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition disabled:opacity-50"
+                >
+                  {{ processingId === item.id ? 'Menyimpan...' : 'Simpan Verifikasi & TTD ✓' }}
+                </button>
+                <button
+                  v-else-if="userRole === 'ketua_dkm'"
+                  @click="submitKetuaApproval(item)"
+                  :disabled="processingId === item.id"
+                  class="px-5 py-2 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition disabled:opacity-50"
+                >
+                  {{ processingId === item.id ? 'Menyimpan...' : 'Simpan Pengesahan & TTD ✓' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. PENYELESAIAN SPJ & DOKUMENTASI BON BELANJA -->
+      <div v-if="openSpjList.length > 0" class="bg-purple-50 border border-purple-200 rounded-xl p-5">
+        <div class="mb-4">
+          <h3 class="text-lg font-bold text-purple-900">
+            🧾 Penyelesaian SPJ & Dokumentasi Bon ({{ openSpjList.length }})
+          </h3>
+          <p class="text-xs text-purple-700">
+            Budget berikut sudah dicairkan. Unggah foto bon/nota belanja untuk menyelesaikan laporan pertanggungjawaban.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <div
+            v-for="spj in openSpjList"
+            :key="spj.id"
+            class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-600"
+          >
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div>
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
+                  Dana Cair • Menunggu Bon SPJ
+                </span>
+                <h4 class="font-bold text-gray-900 mt-1">{{ spj.description }}</h4>
+                <p class="text-sm text-gray-600">
+                  Budget Dicairkan: <strong class="text-purple-800">Rp {{ Number(spj.amount).toLocaleString('id-ID') }}</strong>
+                  • {{ spj.categories?.name }}
                 </p>
               </div>
 
-              <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                  Upload Foto Bon / Nota Belanja (Bisa pilih banyak foto) *
-                </label>
-                <input type="file" accept="image/*,application/pdf" multiple @change="handleSpjFilesChange" class="w-full text-xs text-gray-600 border border-gray-300 rounded-lg p-1.5" />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Rincian Belanja SPJ</label>
-              <input v-model="spjNotes" type="text" placeholder="Contoh: Nota konsumsi Rp 500rb, Bisyarah Ustadz Rp 500rb" class="w-full border border-gray-300 rounded-lg p-2 text-sm" />
-            </div>
-
-            <div class="flex justify-end">
               <button
-                @click="submitSpjCompletion(spj)"
-                :disabled="processingId === spj.id"
-                class="px-5 py-2 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition disabled:opacity-50"
+                @click="activeSpjId = (activeSpjId === spj.id ? null : spj.id); actualAmount = spj.amount"
+                class="px-4 py-2 text-sm font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-lg transition"
               >
-                {{ processingId === spj.id ? 'Mengunggah Bon...' : 'Simpan & Selesaikan SPJ ✓' }}
+                {{ activeSpjId === spj.id ? 'Tutup Form SPJ' : '+ Lengkapi Bon SPJ' }}
               </button>
+            </div>
+
+            <div v-if="activeSpjId === spj.id" class="mt-4 pt-4 border-t border-gray-100 space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">
+                    Total Realisasi Belanja Sesuai Bon (Rp) *
+                  </label>
+                  <input v-model="actualAmount" type="number" required min="0" class="w-full border border-gray-300 rounded-lg p-2 text-sm" />
+                  <p v-if="Number(spj.amount) - Number(actualAmount) > 0" class="text-xs text-emerald-700 font-semibold mt-1">
+                    Sisa dana Rp {{ (Number(spj.amount) - Number(actualAmount)).toLocaleString('id-ID') }} akan otomatis dikembalikan ke Kas Masjid.
+                  </p>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-gray-700 mb-1">
+                    Upload Foto Bon / Nota Belanja (Bisa pilih banyak foto) *
+                  </label>
+                  <input type="file" accept="image/*,application/pdf" multiple @change="handleSpjFilesChange" class="w-full text-xs text-gray-600 border border-gray-300 rounded-lg p-1.5" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Rincian Belanja SPJ</label>
+                <input v-model="spjNotes" type="text" placeholder="Contoh: Nota konsumsi Rp 500rb, Bisyarah Ustadz Rp 500rb" class="w-full border border-gray-300 rounded-lg p-2 text-sm" />
+              </div>
+
+              <div class="flex justify-end">
+                <button
+                  @click="submitSpjCompletion(spj)"
+                  :disabled="processingId === spj.id"
+                  class="px-5 py-2 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition disabled:opacity-50"
+                >
+                  {{ processingId === spj.id ? 'Mengunggah Bon...' : 'Simpan & Selesaikan SPJ ✓' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 5. RIWAYAT TRANSAKSI DINAMIS (CASHFLOW BERSIH UNTUK JAMAAH) -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h3 class="text-lg font-bold text-gray-800">
-          {{ isPengurus ? 'Riwayat Transaksi & Dokumentasi SPJ' : 'Riwayat Penerimaan & Pengeluaran Kas' }}
-        </h3>
+      <!-- 5. RIWAYAT TRANSAKSI LENGKAP UNTUK PENGURUS -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 class="text-lg font-bold text-gray-800">
+            Riwayat Transaksi & Dokumentasi SPJ
+          </h3>
 
-        <!-- Filter Interaktif -->
-        <div class="flex flex-wrap items-center gap-2">
-          <button
-            @click="filterType = 'all'"
-            :class="filterType === 'all' ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-            class="px-3 py-1 rounded-lg text-xs font-bold transition"
-          >
-            Semua
-          </button>
-          <button
-            @click="filterType = 'income'"
-            :class="filterType === 'income' ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-            class="px-3 py-1 rounded-lg text-xs font-bold transition"
-          >
-            Pemasukan (+)
-          </button>
-          <button
-            @click="filterType = 'expense'"
-            :class="filterType === 'expense' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-            class="px-3 py-1 rounded-lg text-xs font-bold transition"
-          >
-            Pengeluaran (-)
-          </button>
-          <button @click="fetchDashboardData" class="text-xs text-emerald-700 hover:underline font-semibold ml-2">
-            ↻ Muat Ulang
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              @click="filterType = 'all'"
+              :class="filterType === 'all' ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              class="px-3 py-1 rounded-lg text-xs font-bold transition"
+            >
+              Semua
+            </button>
+            <button
+              @click="filterType = 'income'"
+              :class="filterType === 'income' ? 'bg-emerald-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              class="px-3 py-1 rounded-lg text-xs font-bold transition"
+            >
+              Pemasukan (+)
+            </button>
+            <button
+              @click="filterType = 'expense'"
+              :class="filterType === 'expense' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              class="px-3 py-1 rounded-lg text-xs font-bold transition"
+            >
+              Pengeluaran (-)
+            </button>
+            <button @click="fetchDashboardData" class="text-xs text-emerald-700 hover:underline font-semibold ml-2">
+              ↻ Muat Ulang
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50 text-gray-600 text-xs uppercase border-b">
+                <th class="p-3.5">Tanggal</th>
+                <th class="p-3.5">Kategori & Keterangan</th>
+                <th class="p-3.5">Kantong Kas</th>
+                <th class="p-3.5">Nominal</th>
+                <th class="p-3.5">Status</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-sm">
+              <tr v-for="trx in displayedTransactions" :key="trx.id" class="hover:bg-gray-50">
+                <td class="p-3.5 whitespace-nowrap text-gray-500">
+                  {{ new Date(trx.transaction_date).toLocaleDateString('id-ID') }}
+                </td>
+                <td class="p-3.5">
+                  <div class="font-semibold text-gray-900">{{ trx.categories?.name }}</div>
+                  <div class="text-gray-500 text-xs">{{ trx.description }}</div>
+                  <div v-if="trx.applicant_name" class="text-gray-600 text-xs mt-0.5">
+                    Pemohon: <strong>{{ trx.applicant_name }}</strong>
+                    <span v-if="trx.bendahara_name"> • Verifikator: <strong>{{ trx.bendahara_name }}</strong></span>
+                    <span v-if="trx.ketua_name"> • Pengesah: <strong>{{ trx.ketua_name }}</strong></span>
+                  </div>
+                  <div v-if="trx.spj_notes" class="text-purple-700 text-xs mt-0.5">
+                    SPJ: {{ trx.spj_notes }}
+                  </div>
+                  <div v-if="trx.witness_1 || trx.witness_2" class="text-emerald-700 text-xs mt-0.5">
+                    Saksi Penghitung: {{ trx.witness_1 }} & {{ trx.witness_2 }}
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                    <button
+                      v-if="userRole === 'bendahara' && trx.type === 'expense' && (trx.applicant_sig || trx.bendahara_sig || trx.ketua_sig)"
+                      @click="printVoucherPDF(trx)"
+                      class="text-xs bg-blue-50 text-blue-800 border border-blue-300 px-2.5 py-0.5 rounded font-bold hover:bg-blue-100 transition cursor-pointer"
+                    >
+                      🖨️ Cetak Bukti PDF (3 TTD)
+                    </button>
+
+                    <a v-if="trx.receipt_url" :href="trx.receipt_url" target="_blank" class="text-xs text-blue-600 underline">
+                      Lampiran Dokumen
+                    </a>
+                    <a
+                      v-for="(bonUrl, idx) in (trx.spj_receipt_urls || [])"
+                      :key="idx"
+                      :href="bonUrl"
+                      target="_blank"
+                      class="text-xs text-purple-700 font-semibold underline"
+                    >
+                      [Bon #{{ idx + 1 }}]
+                    </a>
+                  </div>
+                </td>
+                <td class="p-3.5 text-gray-600">{{ trx.wallets?.name }}</td>
+                <td
+                  class="p-3.5 font-bold whitespace-nowrap"
+                  :class="trx.type === 'income' ? 'text-emerald-600' : 'text-red-600'"
+                >
+                  <div>
+                    {{ trx.type === 'income' ? '+' : '-' }} Rp {{ Number(trx.actual_amount ?? trx.amount).toLocaleString('id-ID') }}
+                  </div>
+                  <div v-if="trx.is_budget_request && trx.actual_amount !== null && trx.actual_amount !== trx.amount" class="text-xs font-normal text-gray-400">
+                    (Budget awal: Rp {{ Number(trx.amount).toLocaleString('id-ID') }})
+                  </div>
+                </td>
+                <td class="p-3.5">
+                  <span v-if="trx.is_budget_request && trx.status === 'approved' && trx.actual_amount === null" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                    Cair (Belum SPJ)
+                  </span>
+                  <span v-else-if="trx.is_budget_request && trx.actual_amount !== null" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                    SPJ Selesai ✓
+                  </span>
+                  <span v-else-if="trx.status === 'approved'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                    Disetujui DKM
+                  </span>
+                  <span v-else-if="trx.status === 'pending_bendahara'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                    Menunggu Bendahara
+                  </span>
+                  <span v-else-if="trx.status === 'pending_ketua'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
+                    Menunggu Ketua
+                  </span>
+                  <span v-else class="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                    Ditolak
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="displayedTransactions.length === 0">
+                <td colspan="5" class="p-6 text-center text-gray-400">Belum ada data transaksi pada kategori ini.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-50 text-gray-600 text-xs uppercase border-b">
-              <th class="p-3.5">Tanggal</th>
-              <th class="p-3.5">Kategori & Keterangan</th>
-              <th class="p-3.5">Kantong Kas</th>
-              <th class="p-3.5">Nominal</th>
-              <th class="p-3.5">Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 text-sm">
-            <tr v-for="trx in displayedTransactions" :key="trx.id" class="hover:bg-gray-50">
-              <td class="p-3.5 whitespace-nowrap text-gray-500">
-                {{ new Date(trx.transaction_date).toLocaleDateString('id-ID') }}
-              </td>
-              <td class="p-3.5">
-                <div class="font-semibold text-gray-900">{{ trx.categories?.name }}</div>
-                <div class="text-gray-500 text-xs">{{ trx.description }}</div>
-                <div v-if="isPengurus && trx.applicant_name" class="text-gray-600 text-xs mt-0.5">
-                  Pemohon: <strong>{{ trx.applicant_name }}</strong>
-                  <span v-if="trx.bendahara_name"> • Verifikator: <strong>{{ trx.bendahara_name }}</strong></span>
-                  <span v-if="trx.ketua_name"> • Pengesah: <strong>{{ trx.ketua_name }}</strong></span>
-                </div>
-                <div v-if="isPengurus && trx.spj_notes" class="text-purple-700 text-xs mt-0.5">
-                  SPJ: {{ trx.spj_notes }}
-                </div>
-                <div v-if="trx.witness_1 || trx.witness_2" class="text-emerald-700 text-xs mt-0.5">
-                  Saksi Penghitung: {{ trx.witness_1 }} & {{ trx.witness_2 }}
-                </div>
-
-                <!-- TAUTAN LAMPIRAN & TOMBOL CETAK PDF HANYA UNTUK PENGURUS DKM -->
-                <div v-if="isPengurus" class="flex flex-wrap items-center gap-2 mt-1.5">
-                  <button
-                    v-if="userRole === 'bendahara' && trx.type === 'expense' && (trx.applicant_sig || trx.bendahara_sig || trx.ketua_sig)"
-                    @click="printVoucherPDF(trx)"
-                    class="text-xs bg-blue-50 text-blue-800 border border-blue-300 px-2.5 py-0.5 rounded font-bold hover:bg-blue-100 transition cursor-pointer"
-                  >
-                    🖨️ Cetak Bukti PDF (3 TTD)
-                  </button>
-
-                  <a v-if="trx.receipt_url" :href="trx.receipt_url" target="_blank" class="text-xs text-blue-600 underline">
-                    Lampiran Dokumen
-                  </a>
-                  <a
-                    v-for="(bonUrl, idx) in (trx.spj_receipt_urls || [])"
-                    :key="idx"
-                    :href="bonUrl"
-                    target="_blank"
-                    class="text-xs text-purple-700 font-semibold underline"
-                  >
-                    [Bon #{{ idx + 1 }}]
-                  </a>
-                </div>
-              </td>
-              <td class="p-3.5 text-gray-600">{{ trx.wallets?.name }}</td>
-              <td
-                class="p-3.5 font-bold whitespace-nowrap"
-                :class="trx.type === 'income' ? 'text-emerald-600' : 'text-red-600'"
-              >
-                <div>
-                  {{ trx.type === 'income' ? '+' : '-' }} Rp {{ Number(trx.actual_amount ?? trx.amount).toLocaleString('id-ID') }}
-                </div>
-                <div v-if="isPengurus && trx.is_budget_request && trx.actual_amount !== null && trx.actual_amount !== trx.amount" class="text-xs font-normal text-gray-400">
-                  (Budget awal: Rp {{ Number(trx.amount).toLocaleString('id-ID') }})
-                </div>
-              </td>
-              <td class="p-3.5">
-                <span v-if="isPengurus && trx.is_budget_request && trx.status === 'approved' && trx.actual_amount === null" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                  Cair (Belum SPJ)
-                </span>
-                <span v-else-if="isPengurus && trx.is_budget_request && trx.actual_amount !== null" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                  SPJ Selesai ✓
-                </span>
-                <span v-else-if="trx.status === 'approved'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                  Disetujui DKM
-                </span>
-                <span v-else-if="trx.status === 'pending_bendahara'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  Menunggu Bendahara
-                </span>
-                <span v-else-if="trx.status === 'pending_ketua'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
-                  Menunggu Ketua
-                </span>
-                <span v-else class="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                  Ditolak
-                </span>
-              </td>
-            </tr>
-            <tr v-if="displayedTransactions.length === 0">
-              <td colspan="5" class="p-6 text-center text-gray-400">Belum ada data transaksi pada kategori ini.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </template>
 
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { jsPDF } from 'jspdf'
 import { supabase } from '../supabase'
 import SignaturePad from '../components/SignaturePad.vue'
@@ -499,6 +640,83 @@ const wallets = ref([])
 const transactions = ref([])
 const processingId = ref(null)
 const filterType = ref('all')
+
+// Jam Real-Time & Jadwal Sholat 5 Waktu (Default Tangerang)
+const currentTimeStr = ref('')
+const currentDateStr = ref('')
+const prayerTimes = ref({
+  Subuh: '04:10',
+  Dzuhur: '11:45',
+  Ashar: '15:08',
+  Maghrib: '17:58',
+  Isya: '19:12'
+})
+let clockTimer = null
+
+const updateClock = () => {
+  const now = new Date()
+  currentTimeStr.value = now.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).replace(/\./g, ':')
+
+  currentDateStr.value = now.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+const fetchPrayerTimes = async () => {
+  try {
+    const now = new Date()
+    const yyyy = now.getFullYear()
+    const mm = String(now.getMonth() + 1).padStart(2, '0')
+    const dd = String(now.getDate()).padStart(2, '0')
+    // Kode Kota Tangerang (1104) dari API Kemenag / MyQuran
+    const res = await fetch(`https://api.myquran.com/v2/sholat/jadwal/1104/${yyyy}/${mm}/${dd}`)
+    const json = await res.json()
+    if (json?.status && json?.data?.jadwal) {
+      const j = json.data.jadwal
+      prayerTimes.value = {
+        Subuh: j.subuh,
+        Dzuhur: j.dzuhur,
+        Ashar: j.ashar,
+        Maghrib: j.maghrib,
+        Isya: j.isya
+      }
+    }
+  } catch (e) {
+    // Tetap gunakan jadwal default Tangerang jika offline
+  }
+}
+
+const prayerList = computed(() => {
+  const entries = Object.entries(prayerTimes.value)
+  const now = new Date()
+  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+
+  let nextFound = false
+  const list = entries.map(([name, time]) => {
+    const [h, m] = time.split(':').map(Number)
+    const pMinutes = h * 60 + m
+    let isNext = false
+    if (!nextFound && pMinutes > nowMinutes) {
+      isNext = true
+      nextFound = true
+    }
+    return { name, time, isNext }
+  })
+
+  // Jika sudah lewat Isya, sorot Subuh untuk hari berikutnya
+  if (!nextFound && list.length > 0) {
+    list[0].isNext = true
+  }
+  return list
+})
 
 const isPengurus = computed(() => {
   return ['pelaksana_harian', 'bendahara', 'ketua_dkm'].includes(props.userRole)
@@ -587,7 +805,16 @@ const fetchDashboardData = async () => {
   if (trxData) transactions.value = trxData
 }
 
-onMounted(fetchDashboardData)
+onMounted(() => {
+  updateClock()
+  clockTimer = setInterval(updateClock, 1000)
+  fetchPrayerTimes()
+  fetchDashboardData()
+})
+
+onUnmounted(() => {
+  if (clockTimer) clearInterval(clockTimer)
+})
 
 const openApprovalBox = async (trxId, role) => {
   if (activeApprovalId.value === trxId) {
