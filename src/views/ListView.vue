@@ -536,7 +536,7 @@
 
       <!-- 5. RIWAYAT TRANSAKSI & EXPORT LAPORAN TAHUNAN -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <!-- BARIS EXPORT LAPORAN TAHUNAN & APPROVAL BASAH -->
+        <!-- BARIS EXPORT LAPORAN TAHUNAN & APPROVAL BASAH (TERSUSUN SEJAJAR) -->
         <div class="p-4 sm:p-5 bg-emerald-50/70 border-b border-emerald-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
             <h4 class="text-sm font-extrabold text-emerald-900">
