@@ -715,13 +715,13 @@
       </div>
     </template>
 
-    <!-- RUNNING TEXT / PESAN DINAMIS AYAT & HADIS INFAQ -->
-    <div class="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-2xs py-2.5 px-3.5 flex items-center gap-3">
-      <span class="bg-emerald-700 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 uppercase tracking-wide flex items-center gap-1">
+    <!-- RUNNING TEXT DINAMIS (UKURAN DIPERBESAR & ELEGAN) -->
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-2xs py-3 px-4 flex items-center gap-3.5">
+      <span class="bg-emerald-700 text-white text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-lg shrink-0 uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
         💡 Pesan Infaq
       </span>
-      <div class="overflow-hidden whitespace-nowrap w-full relative h-6 flex items-center">
-        <div class="animate-fade-slide text-xs sm:text-sm font-medium text-emerald-900 absolute w-full truncate">
+      <div class="overflow-hidden whitespace-nowrap w-full relative h-7 flex items-center">
+        <div class="animate-fade-slide text-sm sm:text-base font-semibold text-emerald-950 absolute w-full truncate">
           {{ currentRunningText }}
         </div>
       </div>
@@ -740,7 +740,7 @@
 @keyframes fadeSlide {
   0% {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   15% {
     opacity: 1;
@@ -752,7 +752,7 @@
   }
   100% {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-12px);
   }
 }
 
@@ -991,7 +991,6 @@ onMounted(() => {
   fetchPrayerTimes()
   fetchDashboardData()
 
-  // Timer berganti running text setiap 7 detik secara dinamis
   textInterval = setInterval(() => {
     currentTextIndex.value = (currentTextIndex.value + 1) % runningTexts.value.length
   }, 7000)
@@ -1258,7 +1257,7 @@ const printVoucherPDF = (trx) => {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.text('Pemohon / Pelaksana,', 42, yHeader, { align: 'center' })
-  doc.text('Diverifikasi Bendahara,', 105, yHeader, { align: 'center' })
+  doc.text('Diveriksa Bendahara,', 105, yHeader, { align: 'center' })
   doc.text('Disetujui Ketua DKM,', 168, yHeader, { align: 'center' })
 
   if (trx.applicant_sig) doc.addImage(trx.applicant_sig, 'PNG', 20, ySig, 44, 20)

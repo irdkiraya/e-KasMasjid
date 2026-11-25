@@ -80,11 +80,6 @@
         :userRole="userRole"
       />
     </main>
-
-    <!-- FOOTER SEDERHANA -->
-    <footer class="bg-white/80 backdrop-blur-md border-t border-emerald-200/60 py-4 text-center text-xs text-gray-600">
-      <p>Sistem Transparansi Keuangan & Kas DKM • Masjid Al Muhajirin © 2026</p>
-    </footer>
   </div>
 </template>
 
