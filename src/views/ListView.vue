@@ -715,6 +715,12 @@
       </div>
     </template>
 
+    <!-- FOOTER COPYRIGHT FATHIN FIKRY DEV -->
+    <footer class="mt-10 pt-4 pb-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-1">
+      <p class="font-semibold text-emerald-900">Sistem Keuangan & e-KasMasjid Masjid Al Muhajirin</p>
+      <p>© 2026 <span class="font-bold text-gray-700">Fathin Fikry dev</span>. All rights reserved.</p>
+    </footer>
+
   </div>
 </template>
 
