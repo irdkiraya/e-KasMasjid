@@ -58,7 +58,7 @@
             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
               {{ activeTab === 'income' ? 'Masuk ke Kantong Kas' : 'Sumber Dana (Kantong Kas)' }} *
             </label>
-            <select v-model="walletId" required class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-emerald-500">
+            <select v-model="walletId" required class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
               <option value="">-- Pilih Kantong Kas --</option>
               <option v-for="w in wallets" :key="w.id" :value="w.id">
                 {{ w.name }} (Saldo: Rp {{ Number(w.balance).toLocaleString('id-ID') }})
@@ -69,7 +69,7 @@
           <!-- Pilih Kategori Dinamis -->
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Kategori *</label>
-            <select v-model="categoryId" required class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-emerald-500">
+            <select v-model="categoryId" required class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
               <option value="">-- Pilih Kategori --</option>
               <option v-for="c in filteredCategories" :key="c.id" :value="c.id">
                 {{ c.name }}
@@ -81,7 +81,7 @@
         <!-- FIELD KHUSUS PEMASUKAN -->
         <div v-if="activeTab === 'income'">
           <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Metode Penerimaan *</label>
-          <select v-model="paymentMethod" required class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-emerald-500">
+          <select v-model="paymentMethod" required class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
             <option value="kotak_amal">Kotak Amal (Jumat / Harian - Berita Acara)</option>
             <option value="tunai">Tunai (Datang Langsung)</option>
             <option value="qris">QRIS Masjid</option>
@@ -101,7 +101,7 @@
               required
               min="1000"
               placeholder="Contoh: 1200000"
-              class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500"
+              class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
             <p v-if="activeTab === 'expense' && isBudgetRequest" class="text-[11px] text-blue-700 font-medium mt-1">
               *Memerlukan verifikasi Bendahara & pengesahan Ketua DKM.
@@ -114,7 +114,7 @@
               v-model="transactionDate"
               type="date"
               required
-              class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white focus:ring-2 focus:ring-emerald-500"
+              class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
         </div>
@@ -127,7 +127,7 @@
             type="text"
             required
             placeholder="Nama lengkap pengurus pemohon"
-            class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           />
         </div>
 
@@ -147,7 +147,7 @@
                 ? 'Contoh: Pengajuan Budget PHBI Ceramah Maulid (Konsumsi, Bisyarah, Dekorasi)'
                 : 'Contoh: Penyelesaian Kasbon PHBI Ceramah Maulid (Nota terlampir)'
             "
-            class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500"
+            class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           ></textarea>
         </div>
 
@@ -162,14 +162,14 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-2">
               <label class="block text-xs font-bold text-gray-800">Nama Saksi 1 *</label>
-              <input v-model="witness1" type="text" required placeholder="Contoh: Bpk. Suko" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white" />
+              <input v-model="witness1" type="text" required placeholder="Contoh: Bpk. Suko" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white text-gray-900 focus:outline-none" />
               <label class="block text-[11px] font-bold text-gray-600">Tanda Tangan Saksi 1 *</label>
               <SignaturePad ref="sigPad1" />
             </div>
 
             <div class="space-y-2">
               <label class="block text-xs font-bold text-gray-800">Nama Saksi 2 *</label>
-              <input v-model="witness2" type="text" required placeholder="Contoh: Bpk. Jatmiko" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white" />
+              <input v-model="witness2" type="text" required placeholder="Contoh: Bpk. Jatmiko" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white text-gray-900 focus:outline-none" />
               <label class="block text-[11px] font-bold text-gray-600">Tanda Tangan Saksi 2 *</label>
               <SignaturePad ref="sigPad2" />
             </div>
@@ -180,11 +180,11 @@
         <div v-else-if="activeTab === 'income'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">Nama Donatur</label>
-            <input v-model="donorName" type="text" placeholder="Hamba Allah" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500" />
+            <input v-model="donorName" type="text" placeholder="Hamba Allah" class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">No. WhatsApp (Opsional)</label>
-            <input v-model="donorPhone" type="text" placeholder="0812xxxx" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500" />
+            <input v-model="donorPhone" type="text" placeholder="0812xxxx" class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none" />
           </div>
         </div>
 
@@ -205,7 +205,7 @@
             accept="image/*,application/pdf"
             :required="activeTab === 'expense' && !isBudgetRequest"
             @change="handleFileChange"
-            class="w-full text-xs text-gray-600 border border-gray-300 rounded-xl p-2 bg-white"
+            class="w-full text-xs text-gray-600 border border-gray-300 rounded-xl p-2 bg-white text-gray-900"
           />
         </div>
 
@@ -260,7 +260,6 @@ const fileInputRef = ref(null)
 const sigPad1 = ref(null)
 const sigPad2 = ref(null)
 
-// Nomor WhatsApp Bendahara Umum untuk Notifikasi Otomatis (Ganti dengan nomor aktif diawali 62)
 const noWhatsAppBendahara = '6281234567890'
 
 const filteredCategories = computed(() => {
@@ -409,7 +408,6 @@ const handleSubmit = async () => {
     const { error: insertError } = await supabase.from('transactions').insert(payload)
     if (insertError) throw insertError
 
-    // Konfirmasi Kirim Notifikasi WhatsApp Otomatis ke Bendahara
     if (activeTab.value === 'expense' && isBudgetRequest.value) {
       alert('Pengajuan budget berhasil disimpan dan masuk ke antrean verifikasi Bendahara!')
       if (confirm('Ingin mengirim Notifikasi WhatsApp otomatis ke Bendahara Umum sekarang?')) {
