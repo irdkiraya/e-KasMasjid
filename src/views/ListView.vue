@@ -715,8 +715,8 @@
       </div>
     </template>
 
-    <!-- RUNNING TEXT DINAMIS (UKURAN DIPERBESAR & ELEGAN) -->
-    <div class="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-2xs py-3 px-4 flex items-center gap-3.5">
+    <!-- RUNNING TEXT DINAMIS (HANYA MUNCUL PADA TAMPILAN JAMAAH / BUKAN PENGURUS) -->
+    <div v-if="!isPengurus" class="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-2xs py-3 px-4 flex items-center gap-3.5">
       <span class="bg-emerald-700 text-white text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-lg shrink-0 uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
         💡 Pesan Infaq
       </span>
