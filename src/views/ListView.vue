@@ -60,13 +60,10 @@
       </div>
     </div>
 
-    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS (KOMPAK 1 BARIS) -->
+    <!-- 1. RINGKASAN 3 KANTONG SALDO KAS (TANPA TULISAN TOTAL KESELURUHAN) -->
     <div>
       <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
         <h2 class="text-base sm:text-lg font-bold text-gray-800">Saldo Kas Masjid Terkini</h2>
-        <span class="text-xs font-bold text-emerald-900 bg-emerald-200/80 border border-emerald-300 px-3 py-0.5 rounded-full">
-          Total Kas Keseluruhan: Rp {{ totalAllWallets.toLocaleString('id-ID') }}
-        </span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -256,7 +253,7 @@
     </div>
 
     <!-- ===================================================================== -->
-    <!-- TAMPILAN KHUSUS 3 PENGURUS DKM (VERIFIKASI TTD, SPJ & RIWAYAT LENGKAP) -->
+    <!-- TAMPILAN KHUSUS 3 PENGURUS DKM -->
     <!-- ===================================================================== -->
     <template v-if="isPengurus">
       <!-- 3. ANTREAN VERIFIKASI & PERSETUJUAN -->
@@ -641,7 +638,6 @@ const transactions = ref([])
 const processingId = ref(null)
 const filterType = ref('all')
 
-// Jam Real-Time & Jadwal Sholat 5 Waktu (Default Tangerang)
 const currentTimeStr = ref('')
 const currentDateStr = ref('')
 const prayerTimes = ref({
@@ -676,7 +672,6 @@ const fetchPrayerTimes = async () => {
     const yyyy = now.getFullYear()
     const mm = String(now.getMonth() + 1).padStart(2, '0')
     const dd = String(now.getDate()).padStart(2, '0')
-    // Kode Kota Tangerang (1104) dari API Kemenag / MyQuran
     const res = await fetch(`https://api.myquran.com/v2/sholat/jadwal/1104/${yyyy}/${mm}/${dd}`)
     const json = await res.json()
     if (json?.status && json?.data?.jadwal) {
@@ -689,9 +684,7 @@ const fetchPrayerTimes = async () => {
         Isya: j.isya
       }
     }
-  } catch (e) {
-    // Tetap gunakan jadwal default Tangerang jika offline
-  }
+  } catch (e) {}
 }
 
 const prayerList = computed(() => {
@@ -711,7 +704,6 @@ const prayerList = computed(() => {
     return { name, time, isNext }
   })
 
-  // Jika sudah lewat Isya, sorot Subuh untuk hari berikutnya
   if (!nextFound && list.length > 0) {
     list[0].isNext = true
   }
