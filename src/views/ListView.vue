@@ -536,7 +536,7 @@
 
       <!-- 5. RIWAYAT TRANSAKSI & EXPORT LAPORAN TAHUNAN -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <!-- BARIS EXPORT LAPORAN TAHUNAN & APPROVAL BASAH (TERSUSUN SEJAJAR) -->
+        <!-- BARIS EXPORT LAPORAN TAHUNAN & APPROVAL BASAH -->
         <div class="p-4 sm:p-5 bg-emerald-50/70 border-b border-emerald-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
             <h4 class="text-sm font-extrabold text-emerald-900">
@@ -715,14 +715,51 @@
       </div>
     </template>
 
-    <!-- FOOTER COPYRIGHT PROFESIONAL -->
-    <footer class="mt-10 pt-4 pb-6 border-t border-gray-200 text-center text-xs text-gray-500 space-y-1">
+    <!-- RUNNING TEXT / PESAN DINAMIS AYAT & HADIS INFAQ -->
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-2xs py-2.5 px-3.5 flex items-center gap-3">
+      <span class="bg-emerald-700 text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-lg shrink-0 uppercase tracking-wide flex items-center gap-1">
+        💡 Pesan Infaq
+      </span>
+      <div class="overflow-hidden whitespace-nowrap w-full relative h-6 flex items-center">
+        <div class="animate-fade-slide text-xs sm:text-sm font-medium text-emerald-900 absolute w-full truncate">
+          {{ currentRunningText }}
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER COPYRIGHT FATHIN FIKRY DEV -->
+    <footer class="mt-6 pt-3 pb-5 border-t border-gray-200 text-center text-xs text-gray-500 space-y-1">
       <p class="font-semibold text-emerald-900">Sistem Keuangan & e-KasMasjid Masjid Al Muhajirin</p>
       <p>© 2026 <span class="font-bold text-gray-700">Fathin Fikry dev</span>. All rights reserved.</p>
     </footer>
 
   </div>
 </template>
+
+<style scoped>
+@keyframes fadeSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-slide {
+  animation: fadeSlide 8s infinite ease-in-out;
+}
+</style>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
@@ -754,6 +791,18 @@ const prayerTimes = ref({
   Isya: '19:12'
 })
 let clockTimer = null
+
+// Data daftar ayat & hadis untuk running text dinamis bergantian
+const runningTexts = ref([
+  'QS. Al-Baqarah: 261 — "Perumpamaan orang yang menginfakkan hartanya di jalan Allah seperti sebutir biji yang menumbuhkan tujuh tangkai..."',
+  'QS. Al-Baqarah: 267 — "Wahai orang-orang yang beriman! Infakkanlah sebagian dari hasil usahamu yang baik-baik."',
+  'HR. Muslim — "Apabila anak Adam meninggal dunia, terputuslah amalnya kecuali tiga perkara: sedekah jariyah, ilmu yang bermanfaat, atau anak shalih."',
+  'HR. Bukhari — "Hartamu yang sebenarnya adalah apa yang telah engkau sedekahkan (untuk akhirat)."'
+])
+
+const currentTextIndex = ref(0)
+const currentRunningText = computed(() => runningTexts.value[currentTextIndex.value])
+let textInterval = null
 
 const updateClock = () => {
   const now = new Date()
@@ -941,10 +990,16 @@ onMounted(() => {
   clockTimer = setInterval(updateClock, 1000)
   fetchPrayerTimes()
   fetchDashboardData()
+
+  // Timer berganti running text setiap 7 detik secara dinamis
+  textInterval = setInterval(() => {
+    currentTextIndex.value = (currentTextIndex.value + 1) % runningTexts.value.length
+  }, 7000)
 })
 
 onUnmounted(() => {
   if (clockTimer) clearInterval(clockTimer)
+  if (textInterval) clearInterval(textInterval)
 })
 
 const exportAnnualExcel = () => {
