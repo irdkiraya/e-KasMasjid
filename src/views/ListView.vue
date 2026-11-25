@@ -83,7 +83,6 @@
               Rp {{ Number(w.balance).toLocaleString('id-ID') }}
             </p>
           </div>
-          <!-- Logo/Ikon Diperbesar dalam Lingkaran Elegan -->
           <div
             class="w-11 h-11 rounded-full flex items-center justify-center text-2xl shadow-inner shrink-0"
             :class="{
@@ -110,7 +109,6 @@
             Riwayat Penerimaan & Pengeluaran Kas
           </h3>
 
-          <!-- Filter Interaktif -->
           <div class="flex flex-wrap items-center gap-1.5">
             <button
               @click="filterType = 'all'"
@@ -139,7 +137,6 @@
           </div>
         </div>
 
-        <!-- Tabel dengan Internal Scroll agar muat 1 layar -->
         <div class="overflow-x-auto overflow-y-auto max-h-[340px] flex-1">
           <table class="w-full text-left border-collapse">
             <thead class="sticky top-0 z-10 bg-gray-50 text-gray-600 text-[11px] uppercase border-b shadow-2xs">
@@ -187,7 +184,6 @@
       <!-- KOLOM KANAN (5 KOLOM): RINGKASAN CASHFLOW & ALOKASI PENGELUARAN -->
       <div class="lg:col-span-5 flex flex-col gap-3.5 justify-between">
         
-        <!-- Kartu Atas: Ringkasan Cashflow Kas Masjid -->
         <div class="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-gray-100 space-y-3">
           <div>
             <h3 class="text-sm sm:text-base font-bold text-gray-800">📊 Ringkasan Cashflow Kas Masjid</h3>
@@ -209,7 +205,6 @@
             </div>
           </div>
 
-          <!-- Progress Bar Rasio Penggunaan Dana -->
           <div class="space-y-1">
             <div class="flex justify-between text-[11px] font-bold text-gray-600">
               <span>Penyerapan Dana: {{ expenseRatio }}%</span>
@@ -228,7 +223,6 @@
           </div>
         </div>
 
-        <!-- Kartu Bawah: Alokasi Pengeluaran per Bidang -->
         <div class="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-gray-100 space-y-2.5 flex-1">
           <div>
             <h3 class="text-sm sm:text-base font-bold text-gray-800">🕌 Alokasi Pengeluaran per Bidang</h3>
@@ -378,7 +372,7 @@
                     type="text"
                     required
                     placeholder="Masukkan nama lengkap"
-                    class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white"
+                    class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white text-gray-900"
                   />
                 </div>
 
@@ -417,14 +411,16 @@
         </div>
       </div>
 
-      <!-- 4. PENYELESAIAN SPJ & DOKUMENTASI BON BELANJA -->
+      <!-- 4. PENYELESAIAN SPJ & DOKUMENTASI BON BELANJA (BATAS MAKSIMAL 3 x 24 JAM) -->
       <div v-if="openSpjList.length > 0" class="bg-purple-50 border border-purple-200 rounded-xl p-5">
         <div class="mb-4">
           <h3 class="text-lg font-bold text-purple-900">
             🧾 Penyelesaian SPJ & Dokumentasi Bon ({{ openSpjList.length }})
           </h3>
           <p class="text-xs text-purple-700">
-            Budget berikut sudah dicairkan. Unggah foto bon/nota belanja untuk menyelesaikan laporan pertanggungjawaban.
+            Maksimal penyelesaian SPJ adalah <strong>3 x 24 jam (72 jam)</strong> setelah dana dicairkan.
+            <span v-if="userRole === 'pelaksana_harian'"> Silakan unggah bukti bon/nota belanja yang sesuai.</span>
+            <span v-else> (Pemantauan & Pemeriksaan oleh {{ userRole === 'bendahara' ? 'Bendahara Umum' : 'Ketua DKM' }}).</span>
           </p>
         </div>
 
@@ -432,35 +428,80 @@
           <div
             v-for="spj in openSpjList"
             :key="spj.id"
-            class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-600"
+            class="bg-white p-4 rounded-lg shadow-sm border-l-4 transition"
+            :class="getSpjDeadlineStatus(spj).isOverdue ? 'border-red-600 bg-red-50/40 ring-1 ring-red-200' : 'border-purple-600'"
           >
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div>
-                <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
-                  Dana Cair • Menunggu Bon SPJ
-                </span>
-                <h4 class="font-bold text-gray-900 mt-1">{{ spj.description }}</h4>
-                <p class="text-sm text-gray-600">
-                  Budget Dicairkan: <strong class="text-purple-800">Rp {{ Number(spj.amount).toLocaleString('id-ID') }}</strong>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class="text-xs font-bold px-2.5 py-0.5 rounded"
+                    :class="getSpjDeadlineStatus(spj).isOverdue ? 'bg-red-100 text-red-700' : 'bg-purple-100 text-purple-800'"
+                  >
+                    Dana Cair • Menunggu Bon SPJ
+                  </span>
+
+                  <span
+                    class="text-xs font-extrabold px-2.5 py-0.5 rounded"
+                    :class="getSpjDeadlineStatus(spj).isOverdue ? 'bg-red-600 text-white animate-pulse' : 'bg-amber-100 text-amber-800'"
+                  >
+                    {{ getSpjDeadlineStatus(spj).label }}
+                  </span>
+                </div>
+
+                <h4
+                  class="font-bold mt-1.5"
+                  :class="getSpjDeadlineStatus(spj).isOverdue ? 'text-red-700' : 'text-gray-900'"
+                >
+                  {{ spj.description }}
+                </h4>
+                <p
+                  class="text-sm mt-0.5"
+                  :class="getSpjDeadlineStatus(spj).isOverdue ? 'text-red-600 font-semibold' : 'text-gray-600'"
+                >
+                  Budget Dicairkan:
+                  <strong :class="getSpjDeadlineStatus(spj).isOverdue ? 'text-red-700' : 'text-purple-800'">
+                    Rp {{ Number(spj.amount).toLocaleString('id-ID') }}
+                  </strong>
                   • {{ spj.categories?.name }}
+                  <span v-if="spj.applicant_name"> • Pelaksana: <strong>{{ spj.applicant_name }}</strong></span>
                 </p>
               </div>
 
-              <button
-                @click="activeSpjId = (activeSpjId === spj.id ? null : spj.id); actualAmount = spj.amount"
-                class="px-4 py-2 text-sm font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-lg transition"
-              >
-                {{ activeSpjId === spj.id ? 'Tutup Form SPJ' : '+ Lengkapi Bon SPJ' }}
-              </button>
+              <!-- TOMBOL UPLOAD HANYA UNTUK PELAKSANA HARIAN -->
+              <div v-if="userRole === 'pelaksana_harian'">
+                <button
+                  @click="activeSpjId = (activeSpjId === spj.id ? null : spj.id); actualAmount = spj.amount"
+                  class="px-4 py-2 text-sm font-bold text-white rounded-lg transition shadow-sm"
+                  :class="getSpjDeadlineStatus(spj).isOverdue ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-700 hover:bg-purple-800'"
+                >
+                  {{ activeSpjId === spj.id ? 'Tutup Form SPJ' : '+ Lengkapi Bon SPJ' }}
+                </button>
+              </div>
+
+              <!-- BENDAHARA & KETUA DKM HANYA PEMANTAU / APPROVAL SAJA -->
+              <div v-else class="text-right">
+                <span
+                  class="inline-block text-xs font-bold px-3 py-1.5 rounded-lg border"
+                  :class="getSpjDeadlineStatus(spj).isOverdue
+                    ? 'bg-red-100 text-red-700 border-red-300'
+                    : 'bg-gray-100 text-gray-600 border-gray-200'"
+                >
+                  {{ getSpjDeadlineStatus(spj).isOverdue
+                    ? '⚠️ Melewati Batas 3x24 Jam — Segera Tagih Pelaksana'
+                    : 'Menunggu Pelaksana Upload Bukti Bon' }}
+                </span>
+              </div>
             </div>
 
-            <div v-if="activeSpjId === spj.id" class="mt-4 pt-4 border-t border-gray-100 space-y-3">
+            <!-- FORM UPLOAD BON SPJ (KHUSUS PELAKSANA HARIAN) -->
+            <div v-if="userRole === 'pelaksana_harian' && activeSpjId === spj.id" class="mt-4 pt-4 border-t border-gray-200 space-y-3">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label class="block text-xs font-bold text-gray-700 mb-1">
                     Total Realisasi Belanja Sesuai Bon (Rp) *
                   </label>
-                  <input v-model="actualAmount" type="number" required min="0" class="w-full border border-gray-300 rounded-lg p-2 text-sm" />
+                  <input v-model="actualAmount" type="number" required min="0" class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white text-gray-900" />
                   <p v-if="Number(spj.amount) - Number(actualAmount) > 0" class="text-xs text-emerald-700 font-semibold mt-1">
                     Sisa dana Rp {{ (Number(spj.amount) - Number(actualAmount)).toLocaleString('id-ID') }} akan otomatis dikembalikan ke Kas Masjid.
                   </p>
@@ -468,15 +509,15 @@
 
                 <div>
                   <label class="block text-xs font-bold text-gray-700 mb-1">
-                    Upload Foto Bon / Nota Belanja (Bisa pilih banyak foto) *
+                    Upload Foto Bukti Bon / Nota Belanja (Bisa pilih banyak foto) *
                   </label>
-                  <input type="file" accept="image/*,application/pdf" multiple @change="handleSpjFilesChange" class="w-full text-xs text-gray-600 border border-gray-300 rounded-lg p-1.5" />
+                  <input type="file" accept="image/*,application/pdf" multiple @change="handleSpjFilesChange" class="w-full text-xs text-gray-900 bg-white border border-gray-300 rounded-lg p-1.5" />
                 </div>
               </div>
 
               <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1">Catatan Rincian Belanja SPJ</label>
-                <input v-model="spjNotes" type="text" placeholder="Contoh: Nota konsumsi Rp 500rb, Bisyarah Ustadz Rp 500rb" class="w-full border border-gray-300 rounded-lg p-2 text-sm" />
+                <input v-model="spjNotes" type="text" placeholder="Contoh: Nota konsumsi Rp 500rb, Bisyarah Ustadz Rp 500rb" class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white text-gray-900" />
               </div>
 
               <div class="flex justify-end">
@@ -493,12 +534,56 @@
         </div>
       </div>
 
-      <!-- 5. RIWAYAT TRANSAKSI LENGKAP UNTUK PENGURUS -->
+      <!-- 5. RIWAYAT TRANSAKSI & EXPORT LAPORAN TAHUNAN (EXCEL & PDF TTD BASAH) -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- BARIS EXPORT LAPORAN TAHUNAN & APPROVAL BASAH -->
+        <div class="p-4 sm:p-5 bg-emerald-50/70 border-b border-emerald-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h4 class="text-sm font-extrabold text-emerald-900">
+              📑 Rekapitulasi Laporan Tahunan & Pengesahan Fisik (TTD Basah)
+            </h4>
+            <p class="text-xs text-emerald-700">
+              Unduh rekapitulasi pembukuan Excel (.xlsx) atau cetak Laporan Resmi PDF dengan kolom tanda tangan basah pengurus DKM.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Pilihan Tahun Laporan -->
+            <select
+              v-model="selectedYear"
+              class="border border-emerald-300 rounded-lg px-3 py-1.5 text-xs font-bold bg-white text-gray-900 focus:outline-none"
+            >
+              <option value="all">Semua Tahun</option>
+              <option v-for="yr in availableYears" :key="yr" :value="yr">Tahun {{ yr }}</option>
+            </select>
+
+            <!-- Tombol Export Excel -->
+            <button
+              @click="exportAnnualExcel"
+              class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>📊 Export Excel (.xlsx)</span>
+            </button>
+
+            <!-- Tombol Export PDF Tanda Tangan Basah -->
+            <button
+              @click="exportAnnualPDF"
+              class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>🖨️ Cetak Laporan PDF (TTD Basah)</span>
+            </button>
+          </div>
+        </div>
+
         <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h3 class="text-lg font-bold text-gray-800">
-            Riwayat Transaksi & Dokumentasi SPJ
-          </h3>
+          <div>
+            <h3 class="text-lg font-bold text-gray-800">
+              Riwayat Transaksi & Pemeriksaan Bukti Bon SPJ
+            </h3>
+            <p v-if="userRole !== 'pelaksana_harian'" class="text-xs text-gray-500 mt-0.5">
+              Klik tautan <strong>[Lihat Bon #1]</strong>, <strong>[Lihat Bon #2]</strong>, dst. untuk memeriksa bukti nota yang telah diunggah oleh Pelaksana Harian.
+            </p>
+          </div>
 
           <div class="flex flex-wrap items-center gap-2">
             <button
@@ -552,8 +637,8 @@
                     <span v-if="trx.bendahara_name"> • Verifikator: <strong>{{ trx.bendahara_name }}</strong></span>
                     <span v-if="trx.ketua_name"> • Pengesah: <strong>{{ trx.ketua_name }}</strong></span>
                   </div>
-                  <div v-if="trx.spj_notes" class="text-purple-700 text-xs mt-0.5">
-                    SPJ: {{ trx.spj_notes }}
+                  <div v-if="trx.spj_notes" class="text-purple-700 text-xs mt-0.5 font-medium">
+                    Catatan SPJ: {{ trx.spj_notes }}
                   </div>
                   <div v-if="trx.witness_1 || trx.witness_2" class="text-emerald-700 text-xs mt-0.5">
                     Saksi Penghitung: {{ trx.witness_1 }} & {{ trx.witness_2 }}
@@ -576,9 +661,9 @@
                       :key="idx"
                       :href="bonUrl"
                       target="_blank"
-                      class="text-xs text-purple-700 font-semibold underline"
+                      class="text-xs bg-purple-50 text-purple-800 border border-purple-200 px-2 py-0.5 rounded font-bold hover:bg-purple-100 transition"
                     >
-                      [Bon #{{ idx + 1 }}]
+                      🧾 Lihat Bon #{{ idx + 1 }} ↗
                     </a>
                   </div>
                 </td>
@@ -595,8 +680,12 @@
                   </div>
                 </td>
                 <td class="p-3.5">
-                  <span v-if="trx.is_budget_request && trx.status === 'approved' && trx.actual_amount === null" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                    Cair (Belum SPJ)
+                  <span
+                    v-if="trx.is_budget_request && trx.status === 'approved' && trx.actual_amount === null"
+                    class="px-2.5 py-1 text-xs font-semibold rounded-full"
+                    :class="getSpjDeadlineStatus(trx).isOverdue ? 'bg-red-100 text-red-700 font-bold' : 'bg-purple-100 text-purple-800'"
+                  >
+                    {{ getSpjDeadlineStatus(trx).isOverdue ? 'Terlambat SPJ (>3x24 Jam)' : 'Cair (Belum SPJ)' }}
                   </span>
                   <span v-else-if="trx.is_budget_request && trx.actual_amount !== null" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
                     SPJ Selesai ✓
@@ -616,7 +705,7 @@
                 </td>
               </tr>
               <tr v-if="displayedTransactions.length === 0">
-                <td colspan="5" class="p-6 text-center text-gray-400">Belum ada data transaksi pada kategori ini.</td>
+                <td colspan="5" class="p-6 text-center text-gray-400">Belum ada data transaksi pada periode/kategori ini.</td>
               </tr>
             </tbody>
           </table>
@@ -630,6 +719,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 import { supabase } from '../supabase'
 import SignaturePad from '../components/SignaturePad.vue'
 
@@ -642,9 +733,11 @@ const wallets = ref([])
 const transactions = ref([])
 const processingId = ref(null)
 const filterType = ref('all')
+const selectedYear = ref(String(new Date().getFullYear()))
 
 const currentTimeStr = ref('')
 const currentDateStr = ref('')
+const nowTimestamp = ref(Date.now())
 const prayerTimes = ref({
   Subuh: '04:10',
   Dzuhur: '11:45',
@@ -656,6 +749,7 @@ let clockTimer = null
 
 const updateClock = () => {
   const now = new Date()
+  nowTimestamp.value = now.getTime()
   currentTimeStr.value = now.toLocaleTimeString('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
@@ -694,7 +788,7 @@ const fetchPrayerTimes = async () => {
 
 const prayerList = computed(() => {
   const entries = Object.entries(prayerTimes.value)
-  const now = new Date()
+  const now = new Date(nowTimestamp.value)
   const nowMinutes = now.getHours() * 60 + now.getMinutes()
 
   let nextFound = false
@@ -715,6 +809,29 @@ const prayerList = computed(() => {
   return list
 })
 
+const getSpjDeadlineStatus = (trx) => {
+  const startTimeStr = trx.approved_at || trx.created_at || trx.transaction_date
+  const startMs = new Date(startTimeStr).getTime()
+  const maxDurationMs = 3 * 24 * 60 * 60 * 1000
+  const deadlineMs = startMs + maxDurationMs
+  const remainingMs = deadlineMs - nowTimestamp.value
+
+  if (remainingMs <= 0) {
+    const overdueHours = Math.floor(Math.abs(remainingMs) / (1000 * 60 * 60))
+    return {
+      isOverdue: true,
+      label: `🚨 TERLAMBAT SPJ: Lewat ${overdueHours} jam (Maks 3x24 Jam)`
+    }
+  }
+
+  const remHours = Math.floor(remainingMs / (1000 * 60 * 60))
+  const remMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60))
+  return {
+    isOverdue: false,
+    label: `⏳ Batas SPJ: ${remHours} jam ${remMinutes} mnt lagi (Maks 3x24 Jam)`
+  }
+}
+
 const isPengurus = computed(() => {
   return ['pelaksana_harian', 'bendahara', 'ketua_dkm'].includes(props.userRole)
 })
@@ -727,6 +844,16 @@ const activeSpjId = ref(null)
 const actualAmount = ref(0)
 const spjNotes = ref('')
 const spjFiles = ref([])
+
+const availableYears = computed(() => {
+  const years = new Set([String(new Date().getFullYear())])
+  transactions.value.forEach(t => {
+    if (t.transaction_date) {
+      years.add(String(new Date(t.transaction_date).getFullYear()))
+    }
+  })
+  return Array.from(years).sort((a, b) => b - a)
+})
 
 const approvedTransactions = computed(() => {
   return transactions.value.filter(t => t.status === 'approved')
@@ -780,6 +907,9 @@ const openSpjList = computed(() => {
 
 const displayedTransactions = computed(() => {
   let base = isPengurus.value ? transactions.value : approvedTransactions.value
+  if (isPengurus.value && selectedYear.value !== 'all') {
+    base = base.filter(t => String(new Date(t.transaction_date).getFullYear()) === selectedYear.value)
+  }
   if (filterType.value !== 'all') {
     base = base.filter(t => t.type === filterType.value)
   }
@@ -793,8 +923,8 @@ const fetchDashboardData = async () => {
   const { data: trxData } = await supabase
     .from('transactions')
     .select(`*, wallets ( name ), categories ( name )`)
-    .order('created_at', { ascending: false })
-    .limit(50)
+    .order('transaction_date', { ascending: false })
+    .limit(500)
   if (trxData) transactions.value = trxData
 }
 
@@ -808,6 +938,202 @@ onMounted(() => {
 onUnmounted(() => {
   if (clockTimer) clearInterval(clockTimer)
 })
+
+// =====================================================================
+// EXPORT LAPORAN TAHUNAN EXCEL (.XLSX)
+// =====================================================================
+const exportAnnualExcel = () => {
+  const periodLabel = selectedYear.value === 'all' ? 'Semua_Tahun' : `Tahun_${selectedYear.value}`
+  const reportData = approvedTransactions.value.filter(t =>
+    selectedYear.value === 'all' ? true : String(new Date(t.transaction_date).getFullYear()) === selectedYear.value
+  )
+
+  if (reportData.length === 0) {
+    alert('Tidak ada data transaksi yang disahkan pada periode tahun ini.')
+    return
+  }
+
+  let totalIn = 0
+  let totalOut = 0
+
+  const rows = reportData.map((t, index) => {
+    const isInc = t.type === 'income'
+    const nominal = Number(t.actual_amount ?? t.amount ?? 0)
+    if (isInc) totalIn += nominal
+    else totalOut += nominal
+
+    return {
+      'No': index + 1,
+      'Tanggal': new Date(t.transaction_date).toLocaleDateString('id-ID'),
+      'Jenis': isInc ? 'Pemasukan' : 'Pengeluaran',
+      'Kantong Kas': t.wallets?.name || '-',
+      'Kategori': t.categories?.name || '-',
+      'Uraian / Keterangan': t.description || '-',
+      'Pemasukan (Rp)': isInc ? nominal : 0,
+      'Pengeluaran (Rp)': !isInc ? nominal : 0,
+      'Pemohon / Saksi': t.applicant_name || (t.witness_1 ? `${t.witness_1} & ${t.witness_2}` : '-'),
+      'Status SPJ': t.is_budget_request ? (t.actual_amount !== null ? 'SPJ Selesai' : 'Belum SPJ') : 'Selesai'
+    }
+  })
+
+  // Tambahkan Baris Total di Bawah Tabel
+  rows.push({
+    'No': '',
+    'Tanggal': '',
+    'Jenis': 'TOTAL REKAPITULASI',
+    'Kantong Kas': '',
+    'Kategori': '',
+    'Uraian / Keterangan': `Surplus / Defisit Periode: Rp ${(totalIn - totalOut).toLocaleString('id-ID')}`,
+    'Pemasukan (Rp)': totalIn,
+    'Pengeluaran (Rp)': totalOut,
+    'Pemohon / Saksi': '',
+    'Status SPJ': ''
+  })
+
+  const worksheet = XLSX.utils.json_to_sheet(rows)
+  worksheet['!cols'] = [
+    { wch: 5 }, { wch: 14 }, { wch: 15 }, { wch: 24 }, { wch: 25 },
+    { wch: 40 }, { wch: 18 }, { wch: 18 }, { wch: 24 }, { wch: 15 }
+  ]
+
+  // Sheet Kedua: Ringkasan Saldo Kantong Kas Terkini
+  const walletRows = wallets.value.map(w => ({
+    'Kantong Kas Masjid': w.name,
+    'Saldo Terkini (Rp)': Number(w.balance || 0)
+  }))
+  const walletSheet = XLSX.utils.json_to_sheet(walletRows)
+  walletSheet['!cols'] = [{ wch: 30 }, { wch: 22 }]
+
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Rincian Transaksi')
+  XLSX.utils.book_append_sheet(workbook, walletSheet, 'Saldo Kantong Kas')
+
+  XLSX.writeFile(workbook, `Laporan_Keuangan_Masjid_Al_Muhajirin_${periodLabel}.xlsx`)
+}
+
+// =====================================================================
+// EXPORT LAPORAN TAHUNAN PDF RESMI (SIAP TANDA TANGAN BASAH)
+// =====================================================================
+const exportAnnualPDF = () => {
+  const periodTitle = selectedYear.value === 'all' ? 'SEMUA PERIODE' : `TAHUN ${selectedYear.value}`
+  const reportData = approvedTransactions.value.filter(t =>
+    selectedYear.value === 'all' ? true : String(new Date(t.transaction_date).getFullYear()) === selectedYear.value
+  )
+
+  if (reportData.length === 0) {
+    alert('Tidak ada data transaksi yang disahkan pada periode tahun ini.')
+    return
+  }
+
+  const doc = new jsPDF('p', 'mm', 'a4')
+  const tanggalCetak = new Date().toLocaleDateString('id-ID', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  })
+
+  // KOP SURAT DKM
+  doc.setFontSize(14)
+  doc.setFont('helvetica', 'bold')
+  doc.text('DEWAN KEMAKMURAN MASJID (DKM)', 105, 16, { align: 'center' })
+  doc.setFontSize(16)
+  doc.text('MASJID AL MUHAJIRIN', 105, 23, { align: 'center' })
+  doc.setFontSize(9.5)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Laporan Pertanggungjawaban Keuangan & Kas Publik Masjid', 105, 29, { align: 'center' })
+  doc.setLineWidth(0.7)
+  doc.line(14, 33, 196, 33)
+
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.text(`REKAPITULASI LAPORAN KEUANGAN ${periodTitle}`, 105, 41, { align: 'center' })
+
+  let totalIn = 0
+  let totalOut = 0
+
+  const tableBody = reportData.map((t, idx) => {
+    const isInc = t.type === 'income'
+    const nominal = Number(t.actual_amount ?? t.amount ?? 0)
+    if (isInc) totalIn += nominal
+    else totalOut += nominal
+
+    return [
+      idx + 1,
+      new Date(t.transaction_date).toLocaleDateString('id-ID'),
+      `${t.categories?.name || '-'}\n${t.description || ''}`,
+      t.wallets?.name || '-',
+      isInc ? `Rp ${nominal.toLocaleString('id-ID')}` : '-',
+      !isInc ? `Rp ${nominal.toLocaleString('id-ID')}` : '-'
+    ]
+  })
+
+  autoTable(doc, {
+    startY: 46,
+    head: [['No', 'Tanggal', 'Kategori & Uraian Transaksi', 'Kantong Kas', 'Pemasukan', 'Pengeluaran']],
+    body: tableBody,
+    foot: [[
+      '', '', 'TOTAL KESELURUHAN', '',
+      `Rp ${totalIn.toLocaleString('id-ID')}`,
+      `Rp ${totalOut.toLocaleString('id-ID')}`
+    ]],
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2.2, textColor: [30, 30, 30] },
+    headStyles: { fillColor: [6, 95, 70], textColor: 255, fontStyle: 'bold', halign: 'center' },
+    footStyles: { fillColor: [240, 253, 244], textColor: [6, 95, 70], fontStyle: 'bold' },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 9 },
+      1: { halign: 'center', cellWidth: 20 },
+      2: { cellWidth: 66 },
+      3: { cellWidth: 33 },
+      4: { halign: 'right', cellWidth: 27 },
+      5: { halign: 'right', cellWidth: 27 }
+    }
+  })
+
+  let finalY = doc.lastAutoTable.finalY + 8
+
+  // Cek sisa ruang halaman untuk Ringkasan Saldo & Kolom Tanda Tangan Basah
+  if (finalY > 215) {
+    doc.addPage()
+    finalY = 20
+  }
+
+  // Ringkasan Saldo Akhir Kantong Kas
+  doc.setFontSize(9.5)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Posisi Saldo Kas Masjid Terkini:', 14, finalY)
+  finalY += 5
+  doc.setFont('helvetica', 'normal')
+  wallets.value.forEach(w => {
+    doc.text(`• ${w.name}: Rp ${Number(w.balance || 0).toLocaleString('id-ID')}`, 18, finalY)
+    finalY += 5
+  })
+
+  finalY += 6
+  doc.setFontSize(9.5)
+  doc.text(`Tangerang, ${tanggalCetak}`, 196, finalY, { align: 'right' })
+
+  // KOLOM PENGESAHAN & TANDA TANGAN BASAH (3 PENGURUS DKM + STEMPEL)
+  finalY += 7
+  doc.setFont('helvetica', 'bold')
+  doc.text('Disusun Oleh,', 40, finalY, { align: 'center' })
+  doc.text('Diperiksa Oleh,', 105, finalY, { align: 'center' })
+  doc.text('Mengetahui & Mengesahkan,', 170, finalY, { align: 'center' })
+
+  finalY += 4.5
+  doc.setFont('helvetica', 'normal')
+  doc.text('Pelaksana Harian', 40, finalY, { align: 'center' })
+  doc.text('Bendahara Umum', 105, finalY, { align: 'center' })
+  doc.text('Ketua DKM Al Muhajirin', 170, finalY, { align: 'center' })
+
+  // Ruang kosong 24mm untuk tanda tangan basah dan stempel
+  finalY += 24
+  doc.setFont('helvetica', 'bold')
+  doc.text('( _______________________ )', 40, finalY, { align: 'center' })
+  doc.text('( _______________________ )', 105, finalY, { align: 'center' })
+  doc.text('( _______________________ )', 170, finalY, { align: 'center' })
+
+  const pdfBlobUrl = doc.output('bloburl')
+  window.open(pdfBlobUrl, '_blank')
+}
 
 const openApprovalBox = async (trxId, role) => {
   if (activeApprovalId.value === trxId) {
