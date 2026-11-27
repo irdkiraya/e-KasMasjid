@@ -35,7 +35,9 @@
               <input type="radio" :value="true" v-model="isBudgetRequest" class="mt-1 text-amber-600 focus:ring-amber-500" />
               <div>
                 <div class="text-sm font-bold text-gray-900">1. Pengajuan Budget (Kasbon)</div>
-                <div class="text-xs text-gray-500 mt-0.5">Cair dulu via Bendahara & Ketua, bon menyusul</div>
+                <div class="text-xs text-gray-500 mt-0.5">
+                  &lt; Rp 500rb cukup Bendahara Umum; ≥ Rp 500rb sampai Ketua DKM
+                </div>
               </div>
             </label>
 
@@ -100,11 +102,23 @@
               type="number"
               required
               min="1000"
-              placeholder="Contoh: 1200000"
+              placeholder="Contoh: 450000"
               class="w-full border border-gray-300 rounded-xl p-3 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
-            <p v-if="activeTab === 'expense' && isBudgetRequest" class="text-[11px] text-blue-700 font-medium mt-1">
-              *Memerlukan verifikasi Bendahara & pengesahan Ketua DKM.
+            <!-- Info Dinamis Batas Otorisasi Rp 500.000 -->
+            <p v-if="activeTab === 'expense'" class="text-[11px] font-medium mt-1" :class="Number(amount) >= 500000 ? 'text-amber-700' : 'text-emerald-700'">
+              {{
+                Number(amount) >= 500000
+                  ? '*Nominal ≥ Rp 500.000: Memerlukan verifikasi Bendahara & pengesahan Ketua DKM.'
+                  : '*Nominal < Rp 500.000: Otorisasi final cukup sampai Bendahara Umum (tanpa Ketua DKM).'
+              }}
+            </p>
+            <p v-else-if="activeTab === 'income' && paymentMethod === 'kotak_amal'" class="text-[11px] font-medium mt-1" :class="Number(amount) >= 500000 ? 'text-amber-700' : 'text-emerald-700'">
+              {{
+                Number(amount) >= 500000
+                  ? '*Nominal ≥ Rp 500.000: Memerlukan validasi Bendahara & Ketua DKM.'
+                  : '*Nominal < Rp 500.000: Validasi final cukup sampai Bendahara Umum.'
+              }}
             </p>
           </div>
 
@@ -222,7 +236,7 @@
               : activeTab === 'income'
               ? 'Simpan & Ajukan Validasi'
               : isBudgetRequest
-              ? 'Ajukan Budget ke Bendahara & Ketua (Kirim WA)'
+              ? (Number(amount) >= 500000 ? 'Ajukan Budget ke Bendahara & Ketua (Kirim WA)' : 'Ajukan Budget ke Bendahara Umum (Kirim WA)')
               : 'Simpan Penyelesaian Kasbon'
           }}
         </button>
@@ -236,6 +250,9 @@ import { ref, computed, onMounted } from 'vue'
 import { jsPDF } from 'jspdf'
 import { supabase } from '../supabase'
 import SignaturePad from '../components/SignaturePad.vue'
+
+// Batas nominal otorisasi Ketua DKM (Di bawah Rp 500.000 cukup sampai Bendahara Umum)
+const BATAS_OTORISASI_KETUA = 500000
 
 const activeTab = ref('income')
 const isBudgetRequest = ref(true)
@@ -329,6 +346,7 @@ const handleSubmit = async () => {
     if (!user) throw new Error('Silakan login terlebih dahulu.')
 
     const numericAmount = parseFloat(amount.value)
+    const butuhKetuaDKM = numericAmount >= BATAS_OTORISASI_KETUA
     let receiptUrl = null
 
     if (activeTab.value === 'income' && paymentMethod.value === 'kotak_amal') {
@@ -373,12 +391,15 @@ const handleSubmit = async () => {
       receiptUrl = publicUrlData.publicUrl
     }
 
+    // PENENTUAN STATUS OTORISASI:
+    // - Kotak Amal & Pengajuan Budget masuk ke Bendahara terlebih dahulu ('pending_bendahara')
+    // - Penyelesaian Kasbon (SPJ): jika >= 500.000 butuh persetujuan Ketua, jika < 500.000 langsung 'approved'
     let approvalStatus = 'approved'
     if (activeTab.value === 'income' && paymentMethod.value === 'kotak_amal') {
       approvalStatus = 'pending_bendahara'
     } else if (activeTab.value === 'expense' && isBudgetRequest.value) {
       approvalStatus = 'pending_bendahara'
-    } else if (activeTab.value === 'expense' && numericAmount > 1000000) {
+    } else if (activeTab.value === 'expense' && butuhKetuaDKM) {
       approvalStatus = 'pending_ketua'
     }
 
@@ -409,13 +430,20 @@ const handleSubmit = async () => {
     if (insertError) throw insertError
 
     if (activeTab.value === 'expense' && isBudgetRequest.value) {
-      alert('Pengajuan budget berhasil disimpan dan masuk ke antrean verifikasi Bendahara!')
+      const infoAlur = butuhKetuaDKM
+        ? 'Pengajuan budget ≥ Rp 500.000 berhasil disimpan dan masuk antrean verifikasi Bendahara & Ketua DKM!'
+        : 'Pengajuan budget < Rp 500.000 berhasil disimpan! Otorisasi cukup sampai Bendahara Umum.'
+      alert(infoAlur)
+
       if (confirm('Ingin mengirim Notifikasi WhatsApp otomatis ke Bendahara Umum sekarang?')) {
-        const text = `Assalamu'alaikum Wr. Wb. Bapak/Ibu Bendahara Umum,%0A%0AADA PENGAJUAN BUDGET BARU di e-KasMasjid Al Muhajirin:%0A- *Keperluan:* ${description.value}%0A- *Nominal:* Rp ${numericAmount.toLocaleString('id-ID')}%0A- *Pemohon:* ${applicantName.value}%0A%0ASilakan buka e-KasMasjid untuk verifikasi & TTD digital:%0Ahttps://e-kas-masjid.vercel.app`
+        const text = `Assalamu'alaikum Wr. Wb. Bapak/Ibu Bendahara Umum,%0A%0AADA PENGAJUAN BUDGET BARU di e-KasMasjid Al Muhajirin:%0A- *Keperluan:* ${description.value}%0A- *Nominal:* Rp ${numericAmount.toLocaleString('id-ID')}%0A- *Pemohon:* ${applicantName.value}%0A- *Otorisasi:* ${butuhKetuaDKM ? 'Bendahara & Ketua DKM' : 'Cukup Bendahara Umum (< Rp 500rb)'}%0A%0ASilakan buka e-KasMasjid untuk verifikasi & TTD digital:%0Ahttps://e-kas-masjid.vercel.app`
         window.open(`https://wa.me/${noWhatsAppBendahara}?text=${text}`, '_blank')
       }
     } else if (approvalStatus === 'pending_bendahara' && activeTab.value === 'income') {
-      alert('PDF Berita Acara berhasil dibuat & diteruskan ke Bendahara & Ketua DKM.')
+      const infoKotakAmal = butuhKetuaDKM
+        ? 'PDF Berita Acara berhasil dibuat & diteruskan ke Bendahara & Ketua DKM.'
+        : 'PDF Berita Acara berhasil dibuat & diteruskan untuk validasi final Bendahara Umum (< Rp 500.000).'
+      alert(infoKotakAmal)
     } else {
       alert('Transaksi berhasil dicatat!')
     }

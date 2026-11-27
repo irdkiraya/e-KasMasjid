@@ -277,6 +277,12 @@
                   >
                     {{ item.status === 'pending_bendahara' ? 'Tahap 1: Verifikasi Bendahara' : 'Tahap 2: Persetujuan Ketua DKM' }}
                   </span>
+                  <span
+                    v-if="item.status === 'pending_bendahara' && Number(item.amount) < BATAS_OTORISASI_KETUA"
+                    class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800"
+                  >
+                    Final di Bendahara (&lt; Rp 500rb)
+                  </span>
                   <span v-if="item.is_budget_request" class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">
                     Pengajuan Budget
                   </span>
@@ -329,7 +335,13 @@
                     :disabled="processingId === item.id"
                     class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition"
                   >
-                    {{ activeApprovalId === item.id ? 'Batal' : 'Verifikasi & TTD Bendahara ✍️' }}
+                    {{
+                      activeApprovalId === item.id
+                        ? 'Batal'
+                        : Number(item.amount) < BATAS_OTORISASI_KETUA
+                        ? 'Setujui Final & TTD Bendahara ✍️'
+                        : 'Verifikasi & TTD Bendahara ✍️'
+                    }}
                   </button>
                 </template>
 
@@ -360,6 +372,9 @@
             <div v-if="activeApprovalId === item.id" class="mt-4 pt-4 border-t border-gray-200 bg-gray-50 p-4 rounded-lg space-y-3">
               <p class="text-xs font-bold uppercase tracking-wide" :class="userRole === 'bendahara' ? 'text-blue-900' : 'text-emerald-900'">
                 ✍️ Pembubuhan Tanda Tangan {{ userRole === 'bendahara' ? 'Bendahara Umum' : 'Ketua DKM' }}
+                <span v-if="userRole === 'bendahara' && Number(item.amount) < BATAS_OTORISASI_KETUA" class="text-emerald-700">
+                  (Otorisasi Langsung Selesai — Nominal &lt; Rp 500.000)
+                </span>
               </p>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
@@ -395,7 +410,13 @@
                   :disabled="processingId === item.id"
                   class="px-5 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition disabled:opacity-50"
                 >
-                  {{ processingId === item.id ? 'Menyimpan...' : 'Simpan Verifikasi & TTD ✓' }}
+                  {{
+                    processingId === item.id
+                      ? 'Menyimpan...'
+                      : Number(item.amount) < BATAS_OTORISASI_KETUA
+                      ? 'Simpan & Sahkan Langsung ✓'
+                      : 'Simpan Verifikasi & TTD ✓'
+                  }}
                 </button>
                 <button
                   v-else-if="userRole === 'ketua_dkm'"
@@ -693,7 +714,7 @@
                     SPJ Selesai ✓
                   </span>
                   <span v-else-if="trx.status === 'approved'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                    Disetujui DKM
+                    {{ Number(trx.amount) < BATAS_OTORISASI_KETUA && !trx.ketua_name ? 'Disetujui Bendahara' : 'Disetujui DKM' }}
                   </span>
                   <span v-else-if="trx.status === 'pending_bendahara'" class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                     Menunggu Bendahara
@@ -715,15 +736,56 @@
       </div>
     </template>
 
-    <!-- RUNNING TEXT DINAMIS (HANYA MUNCUL PADA TAMPILAN JAMAAH / BUKAN PENGURUS) -->
-    <div v-if="!isPengurus" class="bg-emerald-50 border border-emerald-200 rounded-xl overflow-hidden shadow-2xs py-3 px-4 flex items-center gap-3.5">
-      <span class="bg-emerald-700 text-white text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-lg shrink-0 uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
-        💡 Pesan Infaq
-      </span>
-      <div class="overflow-hidden whitespace-nowrap w-full relative h-7 flex items-center">
-        <div class="animate-fade-slide text-sm sm:text-base font-semibold text-emerald-950 absolute w-full truncate">
-          {{ currentRunningText }}
+    <!-- RUNNING TEXT 2 BARIS DINAMIS (HANYA MUNCUL PADA TAMPILAN JAMAAH / BUKAN PENGURUS) -->
+    <div
+      v-if="!isPengurus"
+      @mouseenter="isBannerPaused = true"
+      @mouseleave="isBannerPaused = false"
+      class="bg-emerald-50/90 border border-emerald-200 rounded-xl shadow-2xs py-3 px-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 transition-all duration-300 hover:border-emerald-500"
+    >
+      <!-- Badge & Indikator Mobile -->
+      <div class="flex w-full sm:w-auto items-center justify-between shrink-0">
+        <span class="bg-emerald-700 text-white text-xs sm:text-sm font-extrabold px-3.5 py-2 rounded-lg uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
+          💡 Pesan Infaq
+        </span>
+
+        <!-- Indikator Titik Navigasi (Mobile) -->
+        <div class="flex sm:hidden items-center gap-1.5">
+          <button
+            v-for="(_, idx) in runningTexts"
+            :key="idx"
+            type="button"
+            @click="selectRunningText(idx)"
+            :aria-label="`Pesan ke-${idx + 1}`"
+            :class="idx === currentTextIndex ? 'w-4 bg-emerald-700' : 'w-1.5 bg-emerald-300'"
+            class="h-1.5 rounded-full transition-all duration-300"
+          />
         </div>
+      </div>
+
+      <!-- Area Teks 2 Baris Penuh & Dinamis -->
+      <div class="flex-1 overflow-hidden min-h-[44px] flex items-center w-full">
+        <Transition name="slide-up-fade" mode="out-in">
+          <p
+            :key="currentTextIndex"
+            class="line-clamp-3 sm:line-clamp-2 text-xs sm:text-sm leading-relaxed font-semibold text-emerald-950"
+          >
+            {{ currentRunningText }}
+          </p>
+        </Transition>
+      </div>
+
+      <!-- Indikator Titik Navigasi (Desktop) -->
+      <div class="hidden sm:flex flex-col items-center gap-1.5 shrink-0">
+        <button
+          v-for="(_, idx) in runningTexts"
+          :key="idx"
+          type="button"
+          @click="selectRunningText(idx)"
+          :aria-label="`Pesan ke-${idx + 1}`"
+          :class="idx === currentTextIndex ? 'h-4 bg-emerald-700' : 'h-1.5 bg-emerald-300 hover:bg-emerald-500'"
+          class="w-1.5 rounded-full transition-all duration-300 cursor-pointer"
+        />
       </div>
     </div>
 
@@ -737,27 +799,19 @@
 </template>
 
 <style scoped>
-@keyframes fadeSlide {
-  0% {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  85% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
+.slide-up-fade-enter-active,
+.slide-up-fade-leave-active {
+  transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.animate-fade-slide {
-  animation: fadeSlide 8s infinite ease-in-out;
+.slide-up-fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.slide-up-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>
 
@@ -773,6 +827,9 @@ const props = defineProps({
   user: { type: Object, default: null },
   userRole: { type: String, default: null }
 })
+
+// Batas nominal otorisasi Ketua DKM: di bawah Rp 500.000 cukup sampai Bendahara Umum
+const BATAS_OTORISASI_KETUA = 500000
 
 const wallets = ref([])
 const transactions = ref([])
@@ -792,17 +849,22 @@ const prayerTimes = ref({
 })
 let clockTimer = null
 
-// Data daftar ayat & hadis untuk running text dinamis bergantian
+// Data daftar ayat & hadis untuk running text 2 baris dinamis bergantian
 const runningTexts = ref([
-  'QS. Al-Baqarah: 261 — "Perumpamaan orang yang menginfakkan hartanya di jalan Allah seperti sebutir biji yang menumbuhkan tujuh tangkai..."',
-  'QS. Al-Baqarah: 267 — "Wahai orang-orang yang beriman! Infakkanlah sebagian dari hasil usahamu yang baik-baik."',
-  'HR. Muslim — "Apabila anak Adam meninggal dunia, terputuslah amalnya kecuali tiga perkara: sedekah jariyah, ilmu yang bermanfaat, atau anak shalih."',
-  'HR. Bukhari — "Hartamu yang sebenarnya adalah apa yang telah engkau sedekahkan (untuk akhirat)."'
+  'QS. Al-Baqarah: 261 — "Perumpamaan orang yang menginfakkan hartanya di jalan Allah seperti sebutir biji yang menumbuhkan tujuh tangkai, pada setiap tangkai ada seratus biji."',
+  'QS. Al-Baqarah: 267 — "Wahai orang-orang yang beriman! Infakkanlah sebagian dari hasil usahamu yang baik-baik dan sebagian dari apa yang Kami keluarkan dari bumi untukmu."',
+  'HR. Muslim — "Apabila anak Adam meninggal dunia, terputuslah amalnya kecuali tiga perkara: sedekah jariyah, ilmu yang bermanfaat, atau anak shalih yang mendoakannya."',
+  'HR. Bukhari — "Hartamu yang sebenarnya adalah apa yang telah engkau sedekahkan (untuk akhirat), sedangkan yang tersisa adalah milik ahli warismu."'
 ])
 
 const currentTextIndex = ref(0)
+const isBannerPaused = ref(false)
 const currentRunningText = computed(() => runningTexts.value[currentTextIndex.value])
 let textInterval = null
+
+const selectRunningText = (idx) => {
+  currentTextIndex.value = idx
+}
 
 const updateClock = () => {
   const now = new Date()
@@ -954,8 +1016,15 @@ const expenseBreakdown = computed(() => {
     .sort((a, b) => b.total - a.total)
 })
 
+// Antrean verifikasi:
+// - pending_bendahara selalu tampil
+// - pending_ketua HANYA tampil jika nominal >= Rp 500.000
 const visiblePendingTransactions = computed(() => {
-  return transactions.value.filter(t => t.status === 'pending_bendahara' || t.status === 'pending_ketua')
+  return transactions.value.filter(
+    t =>
+      t.status === 'pending_bendahara' ||
+      (t.status === 'pending_ketua' && Number(t.amount) >= BATAS_OTORISASI_KETUA)
+  )
 })
 
 const openSpjList = computed(() => {
@@ -992,7 +1061,9 @@ onMounted(() => {
   fetchDashboardData()
 
   textInterval = setInterval(() => {
-    currentTextIndex.value = (currentTextIndex.value + 1) % runningTexts.value.length
+    if (!isBannerPaused.value) {
+      currentTextIndex.value = (currentTextIndex.value + 1) % runningTexts.value.length
+    }
   }, 7000)
 })
 
@@ -1282,6 +1353,7 @@ const printVoucherPDF = (trx) => {
   window.open(pdfBlobUrl, '_blank')
 }
 
+// REVISI OTORISASI: Di bawah Rp 500.000 langsung approved di Bendahara Umum
 const submitBendaharaApproval = async (trx) => {
   const sigImg = approvalSigPad.value?.[0]?.getSignatureImage() || approvalSigPad.value?.getSignatureImage()
   if (!sigImg) {
@@ -1289,21 +1361,43 @@ const submitBendaharaApproval = async (trx) => {
     return
   }
 
+  const nominal = Number(trx.amount || 0)
+  const butuhKetuaDKM = nominal >= BATAS_OTORISASI_KETUA
+  const nowIso = new Date().toISOString()
+
+  const updatePayload = butuhKetuaDKM
+    ? {
+        status: 'pending_ketua',
+        bendahara_approved_by: props.user.id,
+        bendahara_approved_at: nowIso,
+        bendahara_name: approverName.value || 'Bendahara Umum',
+        bendahara_sig: sigImg
+      }
+    : {
+        status: 'approved',
+        bendahara_approved_by: props.user.id,
+        bendahara_approved_at: nowIso,
+        bendahara_name: approverName.value || 'Bendahara Umum',
+        bendahara_sig: sigImg,
+        approved_by: props.user.id,
+        approved_at: nowIso
+      }
+
   processingId.value = trx.id
   try {
     const { error } = await supabase
       .from('transactions')
-      .update({
-        status: 'pending_ketua',
-        bendahara_approved_by: props.user.id,
-        bendahara_approved_at: new Date().toISOString(),
-        bendahara_name: approverName.value || 'Bendahara Umum',
-        bendahara_sig: sigImg
-      })
+      .update(updatePayload)
       .eq('id', trx.id)
 
     if (error) throw error
-    alert('Verifikasi & TTD Bendahara berhasil disimpan! Diteruskan ke Ketua DKM.')
+
+    if (butuhKetuaDKM) {
+      alert('Verifikasi & TTD Bendahara berhasil disimpan! Diteruskan ke Ketua DKM.')
+    } else {
+      alert('Disetujui Bendahara Umum (< Rp 500.000)! Transaksi langsung sah dan saldo kas telah diperbarui.')
+    }
+
     activeApprovalId.value = null
     await fetchDashboardData()
   } catch (error) {
