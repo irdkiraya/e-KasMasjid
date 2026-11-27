@@ -764,11 +764,11 @@
       </div>
 
       <!-- Area Teks 2 Baris Penuh & Dinamis -->
-      <div class="flex-1 overflow-hidden min-h-[44px] flex items-center w-full">
+      <div class="flex-1 w-full min-h-[44px] flex items-center">
         <Transition name="slide-up-fade" mode="out-in">
           <p
             :key="currentTextIndex"
-            class="line-clamp-3 sm:line-clamp-2 text-xs sm:text-sm leading-relaxed font-semibold text-emerald-950"
+            class="running-text-2lines text-xs sm:text-sm leading-relaxed font-semibold text-emerald-950 m-0"
           >
             {{ currentRunningText }}
           </p>
@@ -799,6 +799,21 @@
 </template>
 
 <style scoped>
+.running-text-2lines {
+  white-space: normal;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .running-text-2lines {
+    -webkit-line-clamp: 3;
+  }
+}
+
 .slide-up-fade-enter-active,
 .slide-up-fade-leave-active {
   transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
